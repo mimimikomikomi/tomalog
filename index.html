@@ -45,6 +45,10 @@ border-radius:8px;
 color:#666;
 font-size:14px;
 }
+
+li{
+margin:4px 0;
+}
 </style>
 </head>
 
@@ -99,6 +103,7 @@ sow: date,
 germ: null,
 events: [
 {
+id: Date.now(),
 date: date,
 text: "🌱 種まき"
 }
@@ -131,6 +136,7 @@ return;
 }
 
 plant.events.push({
+id: Date.now(),
 date: date,
 text: text
 });
@@ -138,6 +144,25 @@ text: text
 if(text.includes("発芽") && !plant.germ){
 plant.germ = date;
 }
+
+save();
+}
+
+function deletePlant(id){
+
+if(!confirm("この野菜を削除しますか？")) return;
+
+plants = plants.filter(p => p.id !== id);
+
+save();
+}
+
+function deleteEvent(plantId,eventId){
+
+const plant = plants.find(p => p.id === plantId);
+
+plant.events =
+plant.events.filter(e => e.id !== eventId);
 
 save();
 }
@@ -158,7 +183,7 @@ germText =
 "発芽から " + days(plant.germ) + "日";
 }
 
-/* 🌱 液肥チェック */
+/* 液肥チェック */
 let fertDate = null;
 
 plant.events.forEach(e => {
@@ -180,7 +205,10 @@ plant.events
 .slice()
 .reverse()
 .map(e =>
-"<li>" + e.date + " " + e.text + "</li>"
+`<li>
+${e.date} ${e.text}
+<button onclick="deleteEvent(${plant.id},${e.id})">×</button>
+</li>`
 )
 .join("");
 
@@ -199,9 +227,15 @@ ${germText}
 ${fertText}
 </div>
 <br>
+
 <button onclick="addEvent(${plant.id})">
 イベント追加
 </button>
+
+<button onclick="deletePlant(${plant.id})">
+この野菜を削除
+</button>
+
 <ul>
 ${events}
 </ul>
