@@ -41,7 +41,10 @@ border:none;
 border-radius:8px;
 }
 
-.small{color:#666;font-size:14px;}
+.small{
+color:#666;
+font-size:14px;
+}
 
 .event-item{
 display:flex;
@@ -125,23 +128,29 @@ max-width:320px;
 
 <script>
 
+/* ===== データ ===== */
 let plants = JSON.parse(localStorage.getItem("tomalog") || "[]");
+let notified = JSON.parse(localStorage.getItem("tomalog_notified") || "{}");
 
-let modalState = {
-plantId:null,
-type:null
-};
+let modalState = { plantId:null, type:null };
 
+/* ===== 初期通知許可 ===== */
+if ("Notification" in window && Notification.permission !== "granted") {
+  Notification.requestPermission();
+}
+
+/* ===== 保存 ===== */
 function save(){
 localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
 }
 
+/* ===== 日数計算 ===== */
 function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
-/* 🌱 野菜追加 */
+/* ===== 野菜追加 ===== */
 function addPlant(){
 
 const name=document.getElementById("name").value;
@@ -156,13 +165,17 @@ plants.push({
 id:crypto.randomUUID(),
 name,
 sow:date,
-events:[{id:crypto.randomUUID(),date,text:"種まき"}]
+events:[{
+id:crypto.randomUUID(),
+date,
+text:"種まき"
+}]
 });
 
 save();
 }
 
-/* 🧩 モーダル開く */
+/* ===== モーダル ===== */
 function openModal(plantId,type){
 
 modalState={plantId,type};
@@ -207,12 +220,12 @@ extra.innerHTML=`
 
 }
 
-/* ❌ 閉じる */
+/* ===== 閉じる ===== */
 function closeModal(){
 document.getElementById("modal").style.display="none";
 }
 
-/* 💾 保存 */
+/* ===== 保存 ===== */
 function saveEvent(){
 
 const plant=plants.find(p=>p.id===modalState.plantId);
@@ -260,7 +273,7 @@ save();
 closeModal();
 }
 
-/* 🗑 削除 */
+/* ===== 削除 ===== */
 function deletePlant(id){
 if(!confirm("削除しますか？"))return;
 plants=plants.filter(p=>p.id!==id);
@@ -273,7 +286,40 @@ plant.events=plant.events.filter(e=>e.id!==eid);
 save();
 }
 
-/* 🖥 表示 */
+/* ===== 通知チェック（液肥7日） ===== */
+function checkNotifications(){
+
+if(Notification.permission !== "granted") return;
+
+const now = new Date();
+
+plants.forEach(plant=>{
+
+plant.events.forEach(e=>{
+
+if(!e.text.includes("液肥")) return;
+
+const diff = Math.floor((now - new Date(e.date)) / 86400000);
+
+if(diff === 7){
+
+if(notified[e.id]) return;
+
+new Notification("🌱 とまログ", {
+body:`${plant.name}：液肥から7日経ちました`
+});
+
+notified[e.id] = true;
+localStorage.setItem("tomalog_notified", JSON.stringify(notified));
+}
+
+});
+
+});
+
+}
+
+/* ===== 表示 ===== */
 function render(){
 
 const list=document.getElementById("list");
@@ -322,7 +368,12 @@ list.appendChild(div);
 
 });
 
+checkNotifications();
+
 }
+
+/* ===== 自動チェック（1時間ごと） ===== */
+setInterval(checkNotifications, 60 * 60 * 1000);
 
 render();
 
