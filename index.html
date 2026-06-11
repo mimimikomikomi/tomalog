@@ -20,7 +20,6 @@ padding:14px;
 border-radius:10px;
 }
 
-/* 🟢 入力カード */
 .card{
 background:white;
 padding:12px;
@@ -28,15 +27,18 @@ border-radius:10px;
 margin:10px 0;
 }
 
-/* 🟢 全体ボタン（薄い緑に変更） */
-button{
-background:#dcedc8;   /* ←薄い緑 */
-color:#2e7d32;        /* ←濃い文字で見やすく */
-border:none;
-border-radius:8px;
+input,button{
+width:100%;
 padding:10px;
 margin:5px 0;
 box-sizing:border-box;
+}
+
+button{
+background:#dcedc8;
+color:#2e7d32;
+border:none;
+border-radius:8px;
 box-shadow:0 1px 2px rgba(0,0,0,0.1);
 }
 
@@ -44,13 +46,11 @@ button:active{
 transform:scale(0.98);
 }
 
-/* 小さい説明 */
 .small{
 color:#666;
 font-size:14px;
 }
 
-/* イベント1行 */
 .event-item{
 display:flex;
 justify-content:space-between;
@@ -59,7 +59,6 @@ gap:8px;
 padding:2px 0;
 }
 
-/* ×ボタン（シンプル） */
 .delete-btn{
 background:none;
 border:none;
@@ -74,7 +73,6 @@ cursor:pointer;
 color:#333;
 }
 
-/* ワンタップボタン群 */
 .quick-buttons{
 display:flex;
 flex-wrap:wrap;
@@ -150,9 +148,21 @@ function addQuickEvent(plantId, type){
 
 const plant = plants.find(p => p.id === plantId);
 
-const date = new Date().toISOString().slice(0,10);
-
+let date = "";
 let text = "";
+
+/* 🧠 日付ルール */
+if(type === "memo"){
+text = prompt("メモを入力");
+if(!text) return;
+
+date = prompt("日付を入力（例：2026-06-12）", new Date().toISOString().slice(0,10));
+if(!date) return;
+
+}else{
+
+date = prompt("日付を入力（例：2026-06-12）", new Date().toISOString().slice(0,10));
+if(!date) return;
 
 switch(type){
 
@@ -165,22 +175,31 @@ case "fert":
 text = "💧 液肥";
 break;
 
+case "harvest":
+text = "🍅 収穫";
+break;
+
+/* 🐛 害虫ワンタップ化 */
 case "pest":
-text = "🐛 害虫";
+
+const pests = ["アブラムシ", "青虫", "ハダニ", "その他"];
+const levels = ["少ない", "普通", "多い"];
+
+const pestType = prompt("害虫を選んでください\n" + pests.join(" / "));
+if(!pestType) return;
+
+const level = prompt("発生量を選んでください\n" + levels.join(" / "));
+if(!level) return;
+
+text = `🐛 ${pestType}（${level}）`;
+
 break;
 
 case "rohaphi":
 text = "💊 ロハピ";
 break;
 
-case "harvest":
-text = "🍅 収穫";
-break;
-
-case "memo":
-text = prompt("メモを入力");
-if(!text) return;
-break;
+}
 
 }
 
@@ -203,7 +222,7 @@ plants = plants.filter(p => p.id !== id);
 save();
 }
 
-/* 🗑 イベント削除（1行単位） */
+/* 🗑 イベント削除 */
 function deleteEvent(plantId, eventId){
 
 const plant = plants.find(p => p.id === plantId);
@@ -226,7 +245,7 @@ if(plant.germ){
 germText = "発芽から " + days(plant.germ) + "日";
 }
 
-/* 💧 液肥 */
+/* 液肥 */
 let fertDate = null;
 
 plant.events.forEach(e => {
@@ -240,7 +259,7 @@ if(fertDate){
 fertText = "液肥から " + days(fertDate) + "日";
 }
 
-/* 📋 イベント */
+/* イベント一覧 */
 let events = plant.events
 .slice()
 .reverse()
