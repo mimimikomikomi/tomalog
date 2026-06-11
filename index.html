@@ -20,6 +20,7 @@ padding:14px;
 border-radius:10px;
 }
 
+/* 🟢 入力カード */
 .card{
 background:white;
 padding:12px;
@@ -27,25 +28,29 @@ border-radius:10px;
 margin:10px 0;
 }
 
-input,button{
-width:100%;
+/* 🟢 全体ボタン（薄い緑に変更） */
+button{
+background:#dcedc8;   /* ←薄い緑 */
+color:#2e7d32;        /* ←濃い文字で見やすく */
+border:none;
+border-radius:8px;
 padding:10px;
 margin:5px 0;
 box-sizing:border-box;
+box-shadow:0 1px 2px rgba(0,0,0,0.1);
 }
 
-button{
-background:#2f8f46;
-color:white;
-border:none;
-border-radius:8px;
+button:active{
+transform:scale(0.98);
 }
 
+/* 小さい説明 */
 .small{
 color:#666;
 font-size:14px;
 }
 
+/* イベント1行 */
 .event-item{
 display:flex;
 justify-content:space-between;
@@ -54,6 +59,7 @@ gap:8px;
 padding:2px 0;
 }
 
+/* ×ボタン（シンプル） */
 .delete-btn{
 background:none;
 border:none;
@@ -61,7 +67,6 @@ color:#999;
 font-size:14px;
 width:auto;
 padding:2px 6px;
-border-radius:4px;
 cursor:pointer;
 }
 
@@ -69,6 +74,7 @@ cursor:pointer;
 color:#333;
 }
 
+/* ワンタップボタン群 */
 .quick-buttons{
 display:flex;
 flex-wrap:wrap;
@@ -111,6 +117,7 @@ function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
+/* 🌱 野菜追加 */
 function addPlant(){
 
 const name = document.getElementById("name").value;
@@ -138,6 +145,7 @@ text: "🌱 種まき"
 save();
 }
 
+/* ⚡ ワンタップイベント */
 function addQuickEvent(plantId, type){
 
 const plant = plants.find(p => p.id === plantId);
@@ -185,6 +193,7 @@ text: text
 save();
 }
 
+/* 🗑 野菜削除 */
 function deletePlant(id){
 
 if(!confirm("この野菜を削除しますか？")) return;
@@ -194,6 +203,7 @@ plants = plants.filter(p => p.id !== id);
 save();
 }
 
+/* 🗑 イベント削除（1行単位） */
 function deleteEvent(plantId, eventId){
 
 const plant = plants.find(p => p.id === plantId);
@@ -203,10 +213,10 @@ plant.events = plant.events.filter(e => e.id !== eventId);
 save();
 }
 
+/* 🖥 表示 */
 function render(){
 
 const list = document.getElementById("list");
-
 list.innerHTML = "";
 
 plants.forEach(plant => {
@@ -216,8 +226,9 @@ if(plant.germ){
 germText = "発芽から " + days(plant.germ) + "日";
 }
 
-/* 液肥 */
+/* 💧 液肥 */
 let fertDate = null;
+
 plant.events.forEach(e => {
 if(e.text.includes("液肥")){
 fertDate = e.date;
@@ -229,7 +240,7 @@ if(fertDate){
 fertText = "液肥から " + days(fertDate) + "日";
 }
 
-/* イベント */
+/* 📋 イベント */
 let events = plant.events
 .slice()
 .reverse()
