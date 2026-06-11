@@ -46,7 +46,6 @@ color:#666;
 font-size:14px;
 }
 
-/* ⭐ ここが今回のUI改善 */
 .event-item{
 display:flex;
 justify-content:space-between;
@@ -68,6 +67,20 @@ cursor:pointer;
 
 .delete-btn:hover{
 color:#333;
+}
+
+.quick-buttons{
+display:flex;
+flex-wrap:wrap;
+gap:6px;
+margin:8px 0;
+}
+
+.quick-buttons button{
+flex:1;
+min-width:90px;
+font-size:12px;
+padding:8px;
 }
 </style>
 </head>
@@ -95,18 +108,13 @@ render();
 }
 
 function days(date){
-return Math.floor(
-(Date.now() - new Date(date)) / 86400000
-);
+return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
 function addPlant(){
 
-const name =
-document.getElementById("name").value;
-
-const date =
-document.getElementById("date").value;
+const name = document.getElementById("name").value;
+const date = document.getElementById("date").value;
 
 if(!name || !date){
 alert("入力してください");
@@ -130,26 +138,42 @@ text: "🌱 種まき"
 save();
 }
 
-function addEvent(id){
+function addQuickEvent(plantId, type){
 
-const text = prompt(
-"発芽、液肥、害虫、ロハピ、収穫、メモ"
-);
+const plant = plants.find(p => p.id === plantId);
 
+const date = new Date().toISOString().slice(0,10);
+
+let text = "";
+
+switch(type){
+
+case "germ":
+text = "🌱 発芽";
+if(!plant.germ) plant.germ = date;
+break;
+
+case "fert":
+text = "💧 液肥";
+break;
+
+case "pest":
+text = "🐛 害虫";
+break;
+
+case "rohaphi":
+text = "💊 ロハピ";
+break;
+
+case "harvest":
+text = "🍅 収穫";
+break;
+
+case "memo":
+text = prompt("メモを入力");
 if(!text) return;
+break;
 
-const plant =
-plants.find(p => p.id === id);
-
-const date =
-prompt(
-"日付を入力（例：2026-06-12）",
-new Date().toISOString().slice(0,10)
-);
-
-if(!date){
-alert("日付を入力してください");
-return;
 }
 
 plant.events.push({
@@ -157,10 +181,6 @@ id: crypto.randomUUID(),
 date: date,
 text: text
 });
-
-if(text.includes("発芽") && !plant.germ){
-plant.germ = date;
-}
 
 save();
 }
@@ -178,31 +198,26 @@ function deleteEvent(plantId, eventId){
 
 const plant = plants.find(p => p.id === plantId);
 
-plant.events =
-plant.events.filter(e => e.id !== eventId);
+plant.events = plant.events.filter(e => e.id !== eventId);
 
 save();
 }
 
 function render(){
 
-const list =
-document.getElementById("list");
+const list = document.getElementById("list");
 
 list.innerHTML = "";
 
 plants.forEach(plant => {
 
 let germText = "発芽待ち";
-
 if(plant.germ){
-germText =
-"発芽から " + days(plant.germ) + "日";
+germText = "発芽から " + days(plant.germ) + "日";
 }
 
-/* 液肥チェック */
+/* 液肥 */
 let fertDate = null;
-
 plant.events.forEach(e => {
 if(e.text.includes("液肥")){
 fertDate = e.date;
@@ -210,15 +225,12 @@ fertDate = e.date;
 });
 
 let fertText = "液肥なし";
-
 if(fertDate){
-fertText =
-"液肥から " + days(fertDate) + "日";
+fertText = "液肥から " + days(fertDate) + "日";
 }
 
-/* イベント表示（1行削除対応） */
-let events =
-plant.events
+/* イベント */
+let events = plant.events
 .slice()
 .reverse()
 .map(e =>
@@ -236,23 +248,18 @@ div.className = "card";
 div.innerHTML = `
 <b>🌱 ${plant.name}</b>
 
-<div class="small">
-種まきから ${days(plant.sow)}日
+<div class="small">種まきから ${days(plant.sow)}日</div>
+<div class="small">${germText}</div>
+<div class="small">${fertText}</div>
+
+<div class="quick-buttons">
+<button onclick="addQuickEvent('${plant.id}','germ')">🌱 発芽</button>
+<button onclick="addQuickEvent('${plant.id}','fert')">💧 液肥</button>
+<button onclick="addQuickEvent('${plant.id}','pest')">🐛 害虫</button>
+<button onclick="addQuickEvent('${plant.id}','rohaphi')">💊 ロハピ</button>
+<button onclick="addQuickEvent('${plant.id}','harvest')">🍅 収穫</button>
+<button onclick="addQuickEvent('${plant.id}','memo')">📝 メモ</button>
 </div>
-
-<div class="small">
-${germText}
-</div>
-
-<div class="small">
-${fertText}
-</div>
-
-<br>
-
-<button onclick="addEvent('${plant.id}')">
-イベント追加
-</button>
 
 <button onclick="deletePlant('${plant.id}')">
 この野菜を削除
