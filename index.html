@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🍅 とまログ</title>
 
+<!-- 🍅 ホーム画面アイコン（白背景PNGをここに置く） -->
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+
 <style>
 body{
 font-family:-apple-system,sans-serif;
@@ -87,7 +91,7 @@ font-size:12px;
 padding:8px;
 }
 
-/* 🐛 モーダル */
+/* 🐛 害虫モーダル */
 #pestModal{
 display:none;
 position:fixed;
@@ -96,7 +100,7 @@ width:100%;height:100%;
 background:rgba(0,0,0,0.4);
 }
 
-#pestModalContent{
+#pestContent{
 background:white;
 margin:20% auto;
 padding:16px;
@@ -107,8 +111,8 @@ text-align:center;
 }
 
 #pestModal button{
-margin:4px;
 width:auto;
+margin:4px;
 }
 </style>
 </head>
@@ -127,7 +131,7 @@ width:auto;
 
 <!-- 🐛 害虫モーダル -->
 <div id="pestModal">
-<div id="pestModalContent">
+<div id="pestContent">
 
 <h3>🐛 害虫を選択</h3>
 
@@ -180,7 +184,7 @@ text:"種まき"
 save();
 }
 
-/* ⚡ イベント追加 */
+/* ⚡ 通常イベント */
 function addQuickEvent(plantId, type){
 
 const plant = plants.find(p => p.id === plantId);
@@ -223,7 +227,7 @@ text
 save();
 }
 
-/* 🐛 モーダル制御 */
+/* 🐛 害虫モーダル */
 let currentPlantId = null;
 let selectedType = null;
 let selectedLevel = null;
@@ -236,14 +240,12 @@ selectedLevel = null;
 
 document.getElementById("pestModal").style.display = "block";
 
-/* 種類 */
 const types = ["アブラムシ","青虫","ハダニ","その他"];
 document.getElementById("pestType").innerHTML =
 types.map(t =>
 `<button onclick="selectType('${t}')">${t}</button>`
 ).join("");
 
-/* 量 */
 const levels = ["少ない","普通","多い"];
 document.getElementById("pestLevel").innerHTML =
 levels.map(l =>
@@ -285,20 +287,14 @@ document.getElementById("pestModal").style.display = "none";
 
 /* 🗑 削除 */
 function deletePlant(id){
-
 if(!confirm("削除しますか？")) return;
-
 plants = plants.filter(p => p.id !== id);
-
 save();
 }
 
 function deleteEvent(pid,eid){
-
 const plant = plants.find(p => p.id === pid);
-
 plant.events = plant.events.filter(e => e.id !== eid);
-
 save();
 }
 
@@ -346,9 +342,7 @@ div.innerHTML = `
 <button onclick="addQuickEvent('${plant.id}','memo')">📝 メモ</button>
 </div>
 
-<button onclick="deletePlant('${plant.id}')">
-この野菜を削除
-</button>
+<button onclick="deletePlant('${plant.id}')">この野菜を削除</button>
 
 <ul>${events}</ul>
 `;
