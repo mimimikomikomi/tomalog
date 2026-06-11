@@ -82,30 +82,6 @@ min-width:90px;
 font-size:12px;
 padding:8px;
 }
-
-/* モーダル共通 */
-.modal{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.4);
-}
-
-.modal-content{
-background:white;
-margin:20% auto;
-padding:16px;
-border-radius:10px;
-width:90%;
-max-width:320px;
-text-align:center;
-}
-
-.modal button{
-width:auto;
-margin:4px;
-}
 </style>
 </head>
 
@@ -121,32 +97,12 @@ margin:4px;
 
 <div id="list"></div>
 
-<!-- 🐛 害虫モーダル -->
-<div id="pestModal" class="modal">
-<div class="modal-content">
-<h3>🐛 害虫</h3>
-<div id="pestType"></div>
-<div id="pestLevel"></div>
-<button onclick="closePest()">キャンセル</button>
-</div>
-</div>
-
-<!-- 💧 液肥モーダル -->
-<div id="fertModal" class="modal">
-<div class="modal-content">
-<h3>💧 液肥</h3>
-<div id="fertType"></div>
-<div id="fertRatio"></div>
-<button onclick="closeFert()">キャンセル</button>
-</div>
-</div>
-
 <script>
 
 let plants =
 JSON.parse(localStorage.getItem("tomalog") || "[]");
 
-/* 保存 */
+/* 保存＆描画 */
 function save(){
 localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
@@ -184,7 +140,7 @@ text:"種まき"
 save();
 }
 
-/* ⚡ 通常イベント */
+/* ⚡ 基本イベント */
 function addEvent(plantId,type){
 
 const plant = plants.find(p => p.id === plantId);
@@ -192,115 +148,82 @@ const plant = plants.find(p => p.id === plantId);
 const date = prompt("日付（例：2026-06-12）", new Date().toISOString().slice(0,10));
 if(!date) return;
 
-let text = "";
+let text="";
 
 switch(type){
 
-case "germ": text="🌱 発芽"; break;
-case "harvest": text="🍅 収穫"; break;
-case "rohaphi": text="💊 ロハピ"; break;
+case "germ":
+text="🌱 発芽";
+break;
+
+case "harvest":
+text="🍅 収穫";
+break;
+
+case "rohaphi":
+text="💊 ロハピ";
+break;
 
 case "memo":
-text = prompt("メモ");
+text=prompt("メモ入力");
 if(!text) return;
 break;
 
 }
 
-plant.events.push({id:crypto.randomUUID(),date,text});
+plant.events.push({
+id:crypto.randomUUID(),
+date,
+text
+});
+
 save();
 }
 
-/* 🐛 害虫 */
-let pestPlantId=null;
-let pestType=null;
-let pestLevel=null;
+/* 💧 液肥（安定版） */
+function addFert(plantId){
 
-function openPest(id){
+const plant = plants.find(p => p.id === plantId);
 
-pestPlantId=id;
-pestType=null;
-pestLevel=null;
+const date = prompt("日付（例：2026-06-12）", new Date().toISOString().slice(0,10));
+if(!date) return;
 
-document.getElementById("pestModal").style.display="block";
+const type = prompt("液肥の種類（例：ハイポネックス）");
+if(!type) return;
 
-const types=["アブラムシ","青虫","ハダニ","その他"];
-document.getElementById("pestType").innerHTML=
-types.map(t=>`<button onclick="setPestType('${t}')">${t}</button>`).join("");
-
-const levels=["少ない","普通","多い"];
-document.getElementById("pestLevel").innerHTML=
-levels.map(l=>`<button onclick="setPestLevel('${l}')">${l}</button>`).join("");
-}
-
-function setPestType(t){pestType=t;checkPest();}
-function setPestLevel(l){pestLevel=l;checkPest();}
-
-function checkPest(){
-
-if(!pestType||!pestLevel)return;
-
-const plant=plants.find(p=>p.id===pestPlantId);
-const date=new Date().toISOString().slice(0,10);
+const ratio = prompt("希釈（例：1000倍）");
+if(!ratio) return;
 
 plant.events.push({
 id:crypto.randomUUID(),
 date,
-text:`🐛 ${pestType}（${pestLevel}）`
+text:`💧 ${type}（${ratio}）`
 });
 
-closePest();
 save();
 }
 
-function closePest(){
-document.getElementById("pestModal").style.display="none";
-}
+/* 🐛 害虫（安定版） */
+function addPest(plantId){
 
-/* 💧 液肥 */
-let fertPlantId=null;
-let fertType=null;
-let fertRatio=null;
+const plant = plants.find(p => p.id === plantId);
 
-function openFert(id){
+const date = prompt("日付（例：2026-06-12）", new Date().toISOString().slice(0,10));
+if(!date) return;
 
-fertPlantId=id;
-fertType=null;
-fertRatio=null;
+const type = prompt("害虫（例：アブラムシ）");
+if(!type) return;
 
-document.getElementById("fertModal").style.display="block";
-
-const types=["ハイポネックス","液体肥料","IB肥料","その他"];
-document.getElementById("fertType").innerHTML=
-types.map(t=>`<button onclick="setFertType('${t}')">${t}</button>`).join("");
-
-const ratios=["500倍","1000倍","2000倍","規定量"];
-document.getElementById("fertRatio").innerHTML=
-ratios.map(r=>`<button onclick="setFertRatio('${r}')">${r}</button>`).join("");
-}
-
-function setFertType(t){fertType=t;checkFert();}
-function setFertRatio(r){fertRatio=r;checkFert();}
-
-function checkFert(){
-
-if(!fertType||!fertRatio)return;
-
-const plant=plants.find(p=>p.id===fertPlantId);
-const date=new Date().toISOString().slice(0,10);
+const level = prompt("量（少ない・普通・多い）");
+if(!level) return;
 
 plant.events.push({
 id:crypto.randomUUID(),
 date,
-text:`💧 ${fertType}（${fertRatio}）`
+text:`🐛 ${type}（${level}）`
 });
 
-closeFert();
 save();
-}
-
-function closeFert(){
-document.getElementById("fertModal").style.display="none";
 }
 
 /* 🗑 削除 */
@@ -349,8 +272,8 @@ div.innerHTML=`
 
 <div class="quick-buttons">
 <button onclick="addEvent('${plant.id}','germ')">🌱 発芽</button>
-<button onclick="openFert('${plant.id}')">💧 液肥</button>
-<button onclick="openPest('${plant.id}')">🐛 害虫</button>
+<button onclick="addFert('${plant.id}')">💧 液肥</button>
+<button onclick="addPest('${plant.id}')">🐛 害虫</button>
 <button onclick="addEvent('${plant.id}','rohaphi')">💊 ロハピ</button>
 <button onclick="addEvent('${plant.id}','harvest')">🍅 収穫</button>
 <button onclick="addEvent('${plant.id}','memo')">📝 メモ</button>
