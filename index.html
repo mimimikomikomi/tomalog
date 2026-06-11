@@ -62,8 +62,8 @@ font-size:14px;
 
 <script>
 
-let plants=
-JSON.parse(localStorage.getItem("tomalog")||"[]");
+let plants =
+JSON.parse(localStorage.getItem("tomalog") || "[]");
 
 function save(){
 localStorage.setItem(
@@ -75,32 +75,32 @@ render();
 
 function days(date){
 return Math.floor(
-(Date.now()-new Date(date))/86400000
+(Date.now() - new Date(date)) / 86400000
 );
 }
 
 function addPlant(){
 
-const name=
+const name =
 document.getElementById("name").value;
 
-const date=
+const date =
 document.getElementById("date").value;
 
-if(!name||!date){
+if(!name || !date){
 alert("入力してください");
 return;
 }
 
 plants.push({
-id:Date.now(),
-name:name,
-sow:date,
-germ:null,
-events:[
+id: Date.now(),
+name: name,
+sow: date,
+germ: null,
+events: [
 {
-date:date,
-text:"🌱 種まき"
+date: date,
+text: "🌱 種まき"
 }
 ]
 });
@@ -110,30 +110,31 @@ save();
 
 function addEvent(id){
 
-const text=prompt(
+const text = prompt(
 "発芽、液肥、害虫、ロハピ、収穫、メモ"
 );
 
-if(!text)return;
+if(!text) return;
 
-const plant=
-plants.find(p=>p.id===id);
+const plant =
+plants.find(p => p.id === id);
 
-const today=
-new Date()
-.toISOString()
-.slice(0,10);
+const date =
+prompt("イベントの日付を入力（例：2026-06-12）", 
+new Date().toISOString().slice(0,10));
+
+if(!date){
+alert("日付を入力してください");
+return;
+}
 
 plant.events.push({
-date:today,
-text:text
+date: date,
+text: text
 });
 
-if(
-text.includes("発芽")
-&& !plant.germ
-){
-plant.germ=today;
+if(text.includes("発芽") && !plant.germ){
+plant.germ = date;
 }
 
 save();
@@ -141,40 +142,33 @@ save();
 
 function render(){
 
-const list=
+const list =
 document.getElementById("list");
 
-list.innerHTML="";
+list.innerHTML = "";
 
-plants.forEach(plant=>{
+plants.forEach(plant => {
 
-const div=
-document.createElement("div");
-
-let germText=
-"発芽待ち";
+let germText = "発芽待ち";
 
 if(plant.germ){
-germText=
-"発芽から"+
-days(plant.germ)+
-"日";
+germText =
+"発芽から " + days(plant.germ) + "日";
 }
 
-let events=
+let events =
 plant.events
 .slice()
 .reverse()
-.map(e=>
-"<li>"+e.date+
-" "+e.text+
-"</li>"
+.map(e =>
+"<li>" + e.date + " " + e.text + "</li>"
 )
 .join("");
 
-div.className="card";
+const div = document.createElement("div");
+div.className = "card";
 
-div.innerHTML=`
+div.innerHTML = `
 <b>🌱 ${plant.name}</b>
 <div class="small">
 種まきから ${days(plant.sow)}日
