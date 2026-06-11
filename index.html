@@ -46,8 +46,28 @@ color:#666;
 font-size:14px;
 }
 
-li{
-margin:4px 0;
+/* ⭐ ここが今回のUI改善 */
+.event-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:8px;
+padding:2px 0;
+}
+
+.delete-btn{
+background:none;
+border:none;
+color:#999;
+font-size:14px;
+width:auto;
+padding:2px 6px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.delete-btn:hover{
+color:#333;
 }
 </style>
 </head>
@@ -94,13 +114,13 @@ return;
 }
 
 plants.push({
-id: Date.now(),
+id: crypto.randomUUID(),
 name: name,
 sow: date,
 germ: null,
 events: [
 {
-id: Date.now(),
+id: crypto.randomUUID(),
 date: date,
 text: "🌱 種まき"
 }
@@ -133,7 +153,7 @@ return;
 }
 
 plant.events.push({
-id: Date.now(),
+id: crypto.randomUUID(),
 date: date,
 text: text
 });
@@ -154,7 +174,7 @@ plants = plants.filter(p => p.id !== id);
 save();
 }
 
-function deleteEvent(plantId,eventId){
+function deleteEvent(plantId, eventId){
 
 const plant = plants.find(p => p.id === plantId);
 
@@ -196,15 +216,16 @@ fertText =
 "液肥から " + days(fertDate) + "日";
 }
 
-/* イベント表示 */
+/* イベント表示（1行削除対応） */
 let events =
 plant.events
 .slice()
 .reverse()
 .map(e =>
-`<li>
-${e.date} ${e.text}
-<button onclick="deleteEvent(${plant.id},${e.id})">×</button>
+`<li class="event-item">
+<span>${e.date} ${e.text}</span>
+<button class="delete-btn"
+onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
 </li>`
 )
 .join("");
@@ -229,11 +250,11 @@ ${fertText}
 
 <br>
 
-<button onclick="addEvent(${plant.id})">
+<button onclick="addEvent('${plant.id}')">
 イベント追加
 </button>
 
-<button onclick="deletePlant(${plant.id})">
+<button onclick="deletePlant('${plant.id}')">
 この野菜を削除
 </button>
 
