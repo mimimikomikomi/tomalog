@@ -120,8 +120,10 @@ const plant =
 plants.find(p => p.id === id);
 
 const date =
-prompt("イベントの日付を入力（例：2026-06-12）", 
-new Date().toISOString().slice(0,10));
+prompt(
+"日付を入力（例：2026-06-12）",
+new Date().toISOString().slice(0,10)
+);
 
 if(!date){
 alert("日付を入力してください");
@@ -156,6 +158,23 @@ germText =
 "発芽から " + days(plant.germ) + "日";
 }
 
+/* 🌱 液肥チェック */
+let fertDate = null;
+
+plant.events.forEach(e => {
+if(e.text.includes("液肥")){
+fertDate = e.date;
+}
+});
+
+let fertText = "液肥なし";
+
+if(fertDate){
+fertText =
+"液肥から " + days(fertDate) + "日";
+}
+
+/* イベント表示 */
 let events =
 plant.events
 .slice()
@@ -175,6 +194,9 @@ div.innerHTML = `
 </div>
 <div class="small">
 ${germText}
+</div>
+<div class="small">
+${fertText}
 </div>
 <br>
 <button onclick="addEvent(${plant.id})">
