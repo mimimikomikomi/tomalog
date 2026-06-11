@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🍅 とまログ</title>
+
+<style>
+body{
+font-family:-apple-system,sans-serif;
+background:#f5f7f5;
+margin:0;
+padding:12px;
+}
+
+h1{
+background:#2f8f46;
+color:white;
+padding:14px;
+border-radius:10px;
+}
+
+.card{
+background:white;
+padding:12px;
+border-radius:10px;
+margin:10px 0;
+}
+
+input,button{
+width:100%;
+padding:10px;
+margin:5px 0;
+box-sizing:border-box;
+}
+
+button{
+background:#2f8f46;
+color:white;
+border:none;
+border-radius:8px;
+}
+
+.small{
+color:#666;
+font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🍅 とまログ</h1>
+
+<div class="card">
+<input id="name" placeholder="野菜名">
+<input id="date" type="date">
+<button onclick="addPlant()">登録</button>
+</div>
+
+<div id="list"></div>
+
+<script>
+
+let plants=
+JSON.parse(localStorage.getItem("tomalog")||"[]");
+
+function save(){
+localStorage.setItem(
+"tomalog",
+JSON.stringify(plants)
+);
+render();
+}
+
+function days(date){
+return Math.floor(
+(Date.now()-new Date(date))/86400000
+);
+}
+
+function addPlant(){
+
+const name=
+document.getElementById("name").value;
+
+const date=
+document.getElementById("date").value;
+
+if(!name||!date){
+alert("入力してください");
+return;
+}
+
+plants.push({
+id:Date.now(),
+name:name,
+sow:date,
+germ:null,
+events:[
+{
+date:date,
+text:"🌱 種まき"
+}
+]
+});
+
+save();
+}
+
+function addEvent(id){
+
+const text=prompt(
+"発芽、液肥、害虫、ロハピ、収穫、メモ"
+);
+
+if(!text)return;
+
+const plant=
+plants.find(p=>p.id===id);
+
+const today=
+new Date()
+.toISOString()
+.slice(0,10);
+
+plant.events.push({
+date:today,
+text:text
+});
+
+if(
+text.includes("発芽")
+&& !plant.germ
+){
+plant.germ=today;
+}
+
+save();
+}
+
+function render(){
+
+const list=
+document.getElementById("list");
+
+list.innerHTML="";
+
+plants.forEach(plant=>{
+
+const div=
+document.createElement("div");
+
+let germText=
+"発芽待ち";
+
+if(plant.germ){
+germText=
+"発芽から"+
+days(plant.germ)+
+"日";
+}
+
+let events=
+plant.events
+.slice()
+.reverse()
+.map(e=>
+"<li>"+e.date+
+" "+e.text+
+"</li>"
+)
+.join("");
+
+div.className="card";
+
+div.innerHTML=`
+<b>🌱 ${plant.name}</b>
+<div class="small">
+種まきから ${days(plant.sow)}日
+</div>
+<div class="small">
+${germText}
+</div>
+<br>
+<button onclick="addEvent(${plant.id})">
+イベント追加
+</button>
+<ul>
+${events}
+</ul>
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
