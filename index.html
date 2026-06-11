@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🍅 とまログ</title>
 
-<!-- 🍅 ホーム画面アイコン（白背景PNGをここに置く） -->
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.png">
-
 <style>
 body{
 font-family:-apple-system,sans-serif;
@@ -73,10 +69,6 @@ padding:2px 6px;
 cursor:pointer;
 }
 
-.delete-btn:hover{
-color:#333;
-}
-
 .quick-buttons{
 display:flex;
 flex-wrap:wrap;
@@ -89,30 +81,6 @@ flex:1;
 min-width:90px;
 font-size:12px;
 padding:8px;
-}
-
-/* 🐛 害虫モーダル */
-#pestModal{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.4);
-}
-
-#pestContent{
-background:white;
-margin:20% auto;
-padding:16px;
-border-radius:10px;
-width:90%;
-max-width:320px;
-text-align:center;
-}
-
-#pestModal button{
-width:auto;
-margin:4px;
 }
 </style>
 </head>
@@ -129,35 +97,23 @@ margin:4px;
 
 <div id="list"></div>
 
-<!-- 🐛 害虫モーダル -->
-<div id="pestModal">
-<div id="pestContent">
-
-<h3>🐛 害虫を選択</h3>
-
-<div id="pestType"></div>
-<div id="pestLevel"></div>
-
-<button onclick="closePest()">キャンセル</button>
-
-</div>
-</div>
-
 <script>
 
 let plants =
 JSON.parse(localStorage.getItem("tomalog") || "[]");
 
+/* 💾 保存（必ず再描画） */
 function save(){
 localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
 }
 
+/* 📅 日数計算 */
 function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
-/* 🌱 追加 */
+/* 🌱 野菜追加 */
 function addPlant(){
 
 const name = document.getElementById("name").value;
@@ -175,7 +131,7 @@ sow: date,
 events:[
 {
 id: crypto.randomUUID(),
-date,
+date: date,
 text:"種まき"
 }
 ]
@@ -184,12 +140,18 @@ text:"種まき"
 save();
 }
 
-/* ⚡ 通常イベント */
-function addQuickEvent(plantId, type){
+/* ⚡ イベント追加（正解構造） */
+function addEvent(plantId, type){
 
 const plant = plants.find(p => p.id === plantId);
 
-const date = new Date().toISOString().slice(0,10);
+/* 👉 ここがルール：必ず日付を入力 */
+const date = prompt(
+"日付を入力（例：2026-06-12）",
+new Date().toISOString().slice(0,10)
+);
+
+if(!date) return;
 
 let text = "";
 
@@ -216,8 +178,23 @@ text = prompt("メモを入力");
 if(!text) return;
 break;
 
+case "pest":
+
+const pests = ["アブラムシ","青虫","ハダニ","その他"];
+const levels = ["少ない","普通","多い"];
+
+const p = prompt("害虫\n" + pests.join(" / "));
+if(!p) return;
+
+const l = prompt("量\n" + levels.join(" / "));
+if(!l) return;
+
+text = `🐛 ${p}（${l}）`;
+break;
+
 }
 
+/* 👉 正解：必ず date + text */
 plant.events.push({
 id: crypto.randomUUID(),
 date,
@@ -227,78 +204,27 @@ text
 save();
 }
 
-/* 🐛 害虫モーダル */
-let currentPlantId = null;
-let selectedType = null;
-let selectedLevel = null;
-
-function openPest(plantId){
-
-currentPlantId = plantId;
-selectedType = null;
-selectedLevel = null;
-
-document.getElementById("pestModal").style.display = "block";
-
-const types = ["アブラムシ","青虫","ハダニ","その他"];
-document.getElementById("pestType").innerHTML =
-types.map(t =>
-`<button onclick="selectType('${t}')">${t}</button>`
-).join("");
-
-const levels = ["少ない","普通","多い"];
-document.getElementById("pestLevel").innerHTML =
-levels.map(l =>
-`<button onclick="selectLevel('${l}')">${l}</button>`
-).join("");
-}
-
-function selectType(t){
-selectedType = t;
-checkPest();
-}
-
-function selectLevel(l){
-selectedLevel = l;
-checkPest();
-}
-
-function checkPest(){
-
-if(!selectedType || !selectedLevel) return;
-
-const plant = plants.find(p => p.id === currentPlantId);
-
-const date = new Date().toISOString().slice(0,10);
-
-plant.events.push({
-id: crypto.randomUUID(),
-date,
-text:`🐛 ${selectedType}（${selectedLevel}）`
-});
-
-closePest();
-save();
-}
-
-function closePest(){
-document.getElementById("pestModal").style.display = "none";
-}
-
-/* 🗑 削除 */
+/* 🗑 野菜削除 */
 function deletePlant(id){
+
 if(!confirm("削除しますか？")) return;
+
 plants = plants.filter(p => p.id !== id);
+
 save();
 }
 
+/* 🗑 イベント削除 */
 function deleteEvent(pid,eid){
+
 const plant = plants.find(p => p.id === pid);
+
 plant.events = plant.events.filter(e => e.id !== eid);
+
 save();
 }
 
-/* 🖥 表示 */
+/* 🖥 表示（正解構造） */
 function render(){
 
 const list = document.getElementById("list");
@@ -306,12 +232,14 @@ list.innerHTML = "";
 
 plants.forEach(plant => {
 
+/* 発芽・液肥はeventsから取得 */
 let germ = plant.events.find(e => e.text.includes("発芽"));
 let fert = plant.events.find(e => e.text.includes("液肥"));
 
 let germText = germ ? `発芽から ${days(germ.date)}日` : "発芽待ち";
 let fertText = fert ? `液肥から ${days(fert.date)}日` : "液肥なし";
 
+/* イベント一覧（正解：必ず date 表示） */
 let events = plant.events
 .slice()
 .reverse()
@@ -334,12 +262,12 @@ div.innerHTML = `
 <div class="small">${fertText}</div>
 
 <div class="quick-buttons">
-<button onclick="addQuickEvent('${plant.id}','germ')">🌱 発芽</button>
-<button onclick="addQuickEvent('${plant.id}','fert')">💧 液肥</button>
-<button onclick="openPest('${plant.id}')">🐛 害虫</button>
-<button onclick="addQuickEvent('${plant.id}','rohaphi')">💊 ロハピ</button>
-<button onclick="addQuickEvent('${plant.id}','harvest')">🍅 収穫</button>
-<button onclick="addQuickEvent('${plant.id}','memo')">📝 メモ</button>
+<button onclick="addEvent('${plant.id}','germ')">🌱 発芽</button>
+<button onclick="addEvent('${plant.id}','fert')">💧 液肥</button>
+<button onclick="addEvent('${plant.id}','pest')">🐛 害虫</button>
+<button onclick="addEvent('${plant.id}','rohaphi')">💊 ロハピ</button>
+<button onclick="addEvent('${plant.id}','harvest')">🍅 収穫</button>
+<button onclick="addEvent('${plant.id}','memo')">📝 メモ</button>
 </div>
 
 <button onclick="deletePlant('${plant.id}')">この野菜を削除</button>
