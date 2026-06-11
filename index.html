@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🍅 とまログ</title>
 
-<!-- 🍅 ホーム画面アイコン対応 -->
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.png">
-
 <style>
 body{
 font-family:-apple-system,sans-serif;
@@ -24,7 +20,6 @@ padding:14px;
 border-radius:10px;
 }
 
-/* カード */
 .card{
 background:white;
 padding:12px;
@@ -32,15 +27,18 @@ border-radius:10px;
 margin:10px 0;
 }
 
-/* ボタン（薄い緑） */
+input,button{
+width:100%;
+padding:10px;
+margin:5px 0;
+box-sizing:border-box;
+}
+
 button{
 background:#dcedc8;
 color:#2e7d32;
 border:none;
 border-radius:8px;
-padding:10px;
-margin:5px 0;
-box-sizing:border-box;
 box-shadow:0 1px 2px rgba(0,0,0,0.1);
 }
 
@@ -48,13 +46,11 @@ button:active{
 transform:scale(0.98);
 }
 
-/* 小さい文字 */
 .small{
 color:#666;
 font-size:14px;
 }
 
-/* イベント行 */
 .event-item{
 display:flex;
 justify-content:space-between;
@@ -63,7 +59,6 @@ gap:8px;
 padding:2px 0;
 }
 
-/* 削除ボタン */
 .delete-btn{
 background:none;
 border:none;
@@ -78,7 +73,6 @@ cursor:pointer;
 color:#333;
 }
 
-/* ワンタップボタン群 */
 .quick-buttons{
 display:flex;
 flex-wrap:wrap;
@@ -92,6 +86,30 @@ min-width:90px;
 font-size:12px;
 padding:8px;
 }
+
+/* 🐛 モーダル */
+#pestModal{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.4);
+}
+
+#pestModalContent{
+background:white;
+margin:20% auto;
+padding:16px;
+border-radius:10px;
+width:90%;
+max-width:320px;
+text-align:center;
+}
+
+#pestModal button{
+margin:4px;
+width:auto;
+}
 </style>
 </head>
 
@@ -99,7 +117,6 @@ padding:8px;
 
 <h1>🍅 とまログ</h1>
 
-<!-- 🌱 登録 -->
 <div class="card">
 <input id="name" placeholder="野菜名">
 <input id="date" type="date">
@@ -107,6 +124,20 @@ padding:8px;
 </div>
 
 <div id="list"></div>
+
+<!-- 🐛 害虫モーダル -->
+<div id="pestModal">
+<div id="pestModalContent">
+
+<h3>🐛 害虫を選択</h3>
+
+<div id="pestType"></div>
+<div id="pestLevel"></div>
+
+<button onclick="closePest()">キャンセル</button>
+
+</div>
+</div>
 
 <script>
 
@@ -122,7 +153,7 @@ function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
-/* 🌱 野菜追加 */
+/* 🌱 追加 */
 function addPlant(){
 
 const name = document.getElementById("name").value;
@@ -135,14 +166,13 @@ return;
 
 plants.push({
 id: crypto.randomUUID(),
-name: name,
+name,
 sow: date,
-germ: null,
-events: [
+events:[
 {
 id: crypto.randomUUID(),
-date: date,
-text: "🌱 種まき"
+date,
+text:"種まき"
 }
 ]
 });
@@ -150,42 +180,19 @@ text: "🌱 種まき"
 save();
 }
 
-/* ⚡ イベント追加（完全版） */
+/* ⚡ イベント追加 */
 function addQuickEvent(plantId, type){
 
 const plant = plants.find(p => p.id === plantId);
 
-let date = "";
+const date = new Date().toISOString().slice(0,10);
+
 let text = "";
-
-/* 📝 メモ */
-if(type === "memo"){
-
-text = prompt("メモを入力");
-if(!text) return;
-
-date = prompt(
-"日付を入力（例：2026-06-12）",
-new Date().toISOString().slice(0,10)
-);
-
-if(!date) return;
-
-/* その他 */
-}else{
-
-date = prompt(
-"日付を入力（例：2026-06-12）",
-new Date().toISOString().slice(0,10)
-);
-
-if(!date) return;
 
 switch(type){
 
 case "germ":
 text = "🌱 発芽";
-if(!plant.germ) plant.germ = date;
 break;
 
 case "fert":
@@ -196,56 +203,101 @@ case "harvest":
 text = "🍅 収穫";
 break;
 
-/* 🐛 害虫（ワンタップ選択） */
-case "pest":
-
-const pests = ["アブラムシ", "青虫", "ハダニ", "その他"];
-const levels = ["少ない", "普通", "多い"];
-
-const pestType = prompt("害虫を選択\n" + pests.join(" / "));
-if(!pestType) return;
-
-const level = prompt("発生量\n" + levels.join(" / "));
-if(!level) return;
-
-text = `🐛 ${pestType}（${level}）`;
-
-break;
-
 case "rohaphi":
 text = "💊 ロハピ";
 break;
 
-}
+case "memo":
+text = prompt("メモを入力");
+if(!text) return;
+break;
 
 }
 
-/* 保存 */
 plant.events.push({
 id: crypto.randomUUID(),
-date: date,
-text: text
+date,
+text
 });
 
 save();
 }
 
-/* 🗑 野菜削除 */
+/* 🐛 モーダル制御 */
+let currentPlantId = null;
+let selectedType = null;
+let selectedLevel = null;
+
+function openPest(plantId){
+
+currentPlantId = plantId;
+selectedType = null;
+selectedLevel = null;
+
+document.getElementById("pestModal").style.display = "block";
+
+/* 種類 */
+const types = ["アブラムシ","青虫","ハダニ","その他"];
+document.getElementById("pestType").innerHTML =
+types.map(t =>
+`<button onclick="selectType('${t}')">${t}</button>`
+).join("");
+
+/* 量 */
+const levels = ["少ない","普通","多い"];
+document.getElementById("pestLevel").innerHTML =
+levels.map(l =>
+`<button onclick="selectLevel('${l}')">${l}</button>`
+).join("");
+}
+
+function selectType(t){
+selectedType = t;
+checkPest();
+}
+
+function selectLevel(l){
+selectedLevel = l;
+checkPest();
+}
+
+function checkPest(){
+
+if(!selectedType || !selectedLevel) return;
+
+const plant = plants.find(p => p.id === currentPlantId);
+
+const date = new Date().toISOString().slice(0,10);
+
+plant.events.push({
+id: crypto.randomUUID(),
+date,
+text:`🐛 ${selectedType}（${selectedLevel}）`
+});
+
+closePest();
+save();
+}
+
+function closePest(){
+document.getElementById("pestModal").style.display = "none";
+}
+
+/* 🗑 削除 */
 function deletePlant(id){
 
-if(!confirm("この野菜を削除しますか？")) return;
+if(!confirm("削除しますか？")) return;
 
 plants = plants.filter(p => p.id !== id);
 
 save();
 }
 
-/* 🗑 イベント削除 */
-function deleteEvent(plantId, eventId){
+function deleteEvent(pid,eid){
 
-const plant = plants.find(p => p.id === plantId);
+const plant = plants.find(p => p.id === pid);
 
-plant.events = plant.events.filter(e => e.id !== eventId);
+plant.events = plant.events.filter(e => e.id !== eid);
 
 save();
 }
@@ -258,26 +310,12 @@ list.innerHTML = "";
 
 plants.forEach(plant => {
 
-let germText = "発芽待ち";
-if(plant.germ){
-germText = "発芽から " + days(plant.germ) + "日";
-}
+let germ = plant.events.find(e => e.text.includes("発芽"));
+let fert = plant.events.find(e => e.text.includes("液肥"));
 
-/* 液肥 */
-let fertDate = null;
+let germText = germ ? `発芽から ${days(germ.date)}日` : "発芽待ち";
+let fertText = fert ? `液肥から ${days(fert.date)}日` : "液肥なし";
 
-plant.events.forEach(e => {
-if(e.text.includes("液肥")){
-fertDate = e.date;
-}
-});
-
-let fertText = "液肥なし";
-if(fertDate){
-fertText = "液肥から " + days(fertDate) + "日";
-}
-
-/* イベント一覧 */
 let events = plant.events
 .slice()
 .reverse()
@@ -287,8 +325,7 @@ let events = plant.events
 <button class="delete-btn"
 onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
 </li>`
-)
-.join("");
+).join("");
 
 const div = document.createElement("div");
 div.className = "card";
@@ -303,7 +340,7 @@ div.innerHTML = `
 <div class="quick-buttons">
 <button onclick="addQuickEvent('${plant.id}','germ')">🌱 発芽</button>
 <button onclick="addQuickEvent('${plant.id}','fert')">💧 液肥</button>
-<button onclick="addQuickEvent('${plant.id}','pest')">🐛 害虫</button>
+<button onclick="openPest('${plant.id}')">🐛 害虫</button>
 <button onclick="addQuickEvent('${plant.id}','rohaphi')">💊 ロハピ</button>
 <button onclick="addQuickEvent('${plant.id}','harvest')">🍅 収穫</button>
 <button onclick="addQuickEvent('${plant.id}','memo')">📝 メモ</button>
@@ -313,9 +350,7 @@ div.innerHTML = `
 この野菜を削除
 </button>
 
-<ul>
-${events}
-</ul>
+<ul>${events}</ul>
 `;
 
 list.appendChild(div);
