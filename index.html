@@ -7,26 +7,24 @@
 
 <style>
 body{
-font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+font-family:-apple-system,sans-serif;
 background:#f5f7f5;
 margin:0;
 padding:12px;
 }
 
 h1{
-background:#A8D5BA;
-color:#2f4f3f;
+background:#2f8f46;
+color:white;
 padding:14px;
-border-radius:16px;
+border-radius:10px;
 }
 
 .card{
-background:#fffdf9;
-border:1px solid #f0eee8;
-padding:16px;
-border-radius:16px;
+background:white;
+padding:12px;
+border-radius:10px;
 margin:10px 0;
-box-shadow:0 4px 10px rgba(0,0,0,0.06);
 }
 
 input,button{
@@ -34,22 +32,13 @@ width:100%;
 padding:10px;
 margin:5px 0;
 box-sizing:border-box;
-font-family:inherit;
 }
 
 button{
-background:#E8F5E9;
-color:#2e5d3a;
+background:#dcedc8;
+color:#2e7d32;
 border:none;
-border-radius:999px;
-min-height:44px;
-box-shadow:0 2px 6px rgba(0,0,0,0.08);
-transition:0.2s;
-}
-
-button:active{
-transform:scale(0.97);
-animation:pulu 0.25s ease;
+border-radius:8px;
 }
 
 .small{
@@ -85,6 +74,7 @@ margin:8px 0;
 flex:1;
 min-width:90px;
 font-size:12px;
+padding:8px;
 }
 
 /* モーダル */
@@ -101,7 +91,7 @@ padding:20px;
 .modal-content{
 background:white;
 padding:15px;
-border-radius:16px;
+border-radius:10px;
 width:100%;
 max-width:320px;
 }
@@ -110,14 +100,6 @@ max-width:320px;
 .overdue{
 color:#d32f2f;
 font-weight:bold;
-}
-
-/* 🌸 ぷるぷるアニメ */
-@keyframes pulu {
-0%   { transform: scale(1); }
-30%  { transform: scale(1.08); }
-60%  { transform: scale(0.97); }
-100% { transform: scale(1); }
 }
 </style>
 </head>
@@ -152,25 +134,29 @@ font-weight:bold;
 
 <script>
 
+/* ===== データ ===== */
 let plants = JSON.parse(localStorage.getItem("tomalog") || "[]");
 let notified = JSON.parse(localStorage.getItem("tomalog_notified") || "{}");
 
 let modalState = { plantId:null, type:null };
 
-/* 通知許可 */
+/* ===== 通知許可 ===== */
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
 
+/* ===== 保存 ===== */
 function save(){
 localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
 }
 
+/* ===== 日数 ===== */
 function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
+/* ===== 追加 ===== */
 function addPlant(){
 
 const name=document.getElementById("name").value;
@@ -188,14 +174,14 @@ sow:date,
 events:[{
 id:crypto.randomUUID(),
 date,
-text:"🌱 種まき"
+text:"種まき"
 }]
 });
 
 save();
 }
 
-/* モーダル */
+/* ===== モーダル ===== */
 function openModal(plantId,type){
 
 modalState={plantId,type};
@@ -212,6 +198,7 @@ memo:"📝 メモ"
 };
 
 document.getElementById("modalTitle").innerText=titleMap[type];
+
 document.getElementById("eventDate").value=new Date().toISOString().slice(0,10);
 
 const extra=document.getElementById("extraFields");
@@ -239,10 +226,12 @@ extra.innerHTML=`
 
 }
 
+/* ===== 閉じる ===== */
 function closeModal(){
 document.getElementById("modal").style.display="none";
 }
 
+/* ===== 保存 ===== */
 function saveEvent(){
 
 const plant = plants.find(p => p.id === modalState.plantId);
@@ -290,7 +279,7 @@ save();
 closeModal();
 }
 
-/* 削除 */
+/* ===== 削除 ===== */
 function deletePlant(id){
 if(!confirm("削除しますか？"))return;
 plants=plants.filter(p=>p.id!==id);
@@ -303,7 +292,7 @@ plant.events=plant.events.filter(e=>e.id!==eid);
 save();
 }
 
-/* 通知 */
+/* ===== 通知（液肥7日） ===== */
 function checkNotifications(){
 
 if(Notification.permission !== "granted") return;
@@ -324,7 +313,7 @@ new Notification("🌱 とまログ", {
 body:`${plant.name}：液肥から7日経ちました`
 });
 
-notified[e.id]=true;
+notified[e.id] = true;
 localStorage.setItem("tomalog_notified", JSON.stringify(notified));
 }
 
@@ -334,7 +323,7 @@ localStorage.setItem("tomalog_notified", JSON.stringify(notified));
 
 }
 
-/* 表示 */
+/* ===== 表示 ===== */
 function render(){
 
 const list=document.getElementById("list");
@@ -342,17 +331,19 @@ list.innerHTML="";
 
 plants.forEach(plant=>{
 
-let germ = plant.events.find(e=>e.text.includes("発芽"));
+let germ = plant.events.find(e => e.text.includes("発芽"));
 
-let fertEvents = plant.events.filter(e=>e.text.startsWith("💧"));
-let fert = fertEvents.length ? fertEvents[fertEvents.length-1] : null;
+let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
+let fert = fertEvents.length ? fertEvents[fertEvents.length - 1] : null;
 
 let germText = germ ? `発芽から ${days(germ.date)}日` : "発芽待ち";
 
 let fertDays = fert ? days(fert.date) : null;
 
 let fertText = fert
-? `<span class="${fertDays>=7?'overdue':''}">液肥から ${fertDays}日</span>`
+? `<span class="${fertDays >= 7 ? 'overdue' : ''}">
+液肥から ${fertDays}日
+</span>`
 : "液肥なし";
 
 let events = plant.events.slice().reverse().map(e=>
@@ -366,7 +357,7 @@ const div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<b>${plant.name}</b>
+<b>🌱 ${plant.name}</b>
 
 <div class="small">種まきから ${days(plant.sow)}日</div>
 <div class="small">${germText}</div>
@@ -381,7 +372,7 @@ div.innerHTML=`
 <button onclick="openModal('${plant.id}','memo')">📝 メモ</button>
 </div>
 
-<button onclick="deletePlant('${plant.id}')">削除</button>
+<button onclick="deletePlant('${plant.id}')">この野菜を削除</button>
 
 <ul>${events}</ul>
 `;
@@ -394,7 +385,8 @@ checkNotifications();
 
 }
 
-setInterval(checkNotifications, 3600000);
+/* ===== 定期チェック ===== */
+setInterval(checkNotifications, 60 * 60 * 1000);
 
 render();
 
