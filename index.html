@@ -95,6 +95,12 @@ border-radius:10px;
 width:100%;
 max-width:320px;
 }
+
+/* 🔴 7日超え */
+.overdue{
+color:#d32f2f;
+font-weight:bold;
+}
 </style>
 </head>
 
@@ -134,7 +140,7 @@ let notified = JSON.parse(localStorage.getItem("tomalog_notified") || "{}");
 
 let modalState = { plantId:null, type:null };
 
-/* ===== 初期通知許可 ===== */
+/* ===== 通知許可 ===== */
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
@@ -145,12 +151,12 @@ localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
 }
 
-/* ===== 日数計算 ===== */
+/* ===== 日数 ===== */
 function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
-/* ===== 野菜追加 ===== */
+/* ===== 追加 ===== */
 function addPlant(){
 
 const name=document.getElementById("name").value;
@@ -228,8 +234,8 @@ document.getElementById("modal").style.display="none";
 /* ===== 保存 ===== */
 function saveEvent(){
 
-const plant=plants.find(p=>p.id===modalState.plantId);
-const date=document.getElementById("eventDate").value;
+const plant = plants.find(p => p.id === modalState.plantId);
+const date = document.getElementById("eventDate").value;
 
 if(!date) return;
 
@@ -242,11 +248,11 @@ text="🌱 発芽";
 break;
 
 case "fert":
-text=`💧 ${fertType.value}（${fertRatio.value}）`;
+text=`💧 ${document.getElementById("fertType").value}（${document.getElementById("fertRatio").value}）`;
 break;
 
 case "pest":
-text=`🐛 ${pestType.value}（${pestLevel.value}）`;
+text=`🐛 ${document.getElementById("pestType").value}（${document.getElementById("pestLevel").value}）`;
 break;
 
 case "rohaphi":
@@ -258,7 +264,7 @@ text="🍅 収穫";
 break;
 
 case "memo":
-text=`📝 ${memoText.value}`;
+text=`📝 ${document.getElementById("memoText").value}`;
 break;
 
 }
@@ -286,7 +292,7 @@ plant.events=plant.events.filter(e=>e.id!==eid);
 save();
 }
 
-/* ===== 通知チェック（液肥7日） ===== */
+/* ===== 通知（液肥7日） ===== */
 function checkNotifications(){
 
 if(Notification.permission !== "granted") return;
@@ -297,13 +303,11 @@ plants.forEach(plant=>{
 
 plant.events.forEach(e=>{
 
-if(!e.text.includes("液肥")) return;
+if(!e.text.startsWith("💧")) return;
 
-const diff = Math.floor((now - new Date(e.date)) / 86400000);
+const diff = days(e.date);
 
-if(diff === 7){
-
-if(notified[e.id]) return;
+if(diff === 7 && !notified[e.id]){
 
 new Notification("🌱 とまログ", {
 body:`${plant.name}：液肥から7日経ちました`
@@ -327,13 +331,22 @@ list.innerHTML="";
 
 plants.forEach(plant=>{
 
-let germ=plant.events.find(e=>e.text.includes("発芽"));
-let fert=plant.events.find(e=>e.text.includes("液肥"));
+let germ = plant.events.find(e => e.text.includes("発芽"));
 
-let germText=germ?`発芽から ${days(germ.date)}日`:"発芽待ち";
-let fertText=fert?`液肥から ${days(fert.date)}日`:"液肥なし";
+let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
+let fert = fertEvents.length ? fertEvents[fertEvents.length - 1] : null;
 
-let events=plant.events.slice().reverse().map(e=>
+let germText = germ ? `発芽から ${days(germ.date)}日` : "発芽待ち";
+
+let fertDays = fert ? days(fert.date) : null;
+
+let fertText = fert
+? `<span class="${fertDays >= 7 ? 'overdue' : ''}">
+液肥から ${fertDays}日
+</span>`
+: "液肥なし";
+
+let events = plant.events.slice().reverse().map(e=>
 `<li class="event-item">
 <span>${e.date} ${e.text}</span>
 <button class="delete-btn" onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
@@ -372,7 +385,7 @@ checkNotifications();
 
 }
 
-/* ===== 自動チェック（1時間ごと） ===== */
+/* ===== 定期チェック ===== */
 setInterval(checkNotifications, 60 * 60 * 1000);
 
 render();
