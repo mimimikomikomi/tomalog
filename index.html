@@ -158,6 +158,38 @@ function days(date){
 return Math.floor((Date.now() - new Date(date)) / 86400000);
 }
 
+/* ===== 収穫目安 ===== */
+
+function getHarvestDays(name){
+
+  if(name.includes("トマト") || name.includes("とまと"))
+
+    return 80;
+
+  if(name.includes("オクラ"))
+
+    return 60;
+
+  if(name.includes("枝豆"))
+
+    return 75;
+
+  if(name.includes("大葉"))
+
+    return 45;
+
+  if(name.includes("きゅうり"))
+
+    return 55;
+
+  if(name.includes("二十日大根"))
+
+    return 30;
+
+  return null;
+
+}
+
 /* ===== 追加 ===== */
 function addPlant(){
 
@@ -357,6 +389,38 @@ let totalHarvest = plant.events
   
 let germ = plant.events.find(e => e.text.includes("発芽"));
 
+let forecastText = "";
+
+if(germ){
+
+  const harvestDays = getHarvestDays(plant.name);
+
+  if(harvestDays){
+
+    const forecastDate = new Date(germ.date);
+
+    forecastDate.setDate(
+      forecastDate.getDate() + harvestDays
+    );
+
+    const remain =
+      Math.ceil(
+        (forecastDate - new Date())
+        / 86400000
+      );
+
+    if(remain > 0){
+      forecastText =
+        `🍅 収穫目安まであと ${remain}日`;
+    }else{
+      forecastText =
+        `🍅 収穫目安を過ぎています`;
+    }
+
+  }
+}
+
+  
 let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
 let fert = fertEvents.length ? fertEvents[fertEvents.length - 1] : null;
 
@@ -391,6 +455,7 @@ div.innerHTML=`
 <div class="small">種まきから ${days(plant.sow)}日</div>
 <div class="small">${germText}</div>
 <div class="small">${fertText}</div>
+<div class="small">${forecastText}</div>
 
 <div class="quick-buttons">
 <button onclick="openModal('${plant.id}','germ')">🌱 発芽</button>
