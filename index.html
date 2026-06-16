@@ -77,10 +77,12 @@ font-size:12px;
 padding:8px;
 }
 
-/* モーダル */
 .modal{
 position:fixed;
-top:0;left:0;right:0;bottom:0;
+top:0;
+left:0;
+right:0;
+bottom:0;
 background:rgba(0,0,0,0.4);
 display:none;
 align-items:center;
@@ -96,7 +98,6 @@ width:100%;
 max-width:320px;
 }
 
-/* 🔴 7日超え */
 .overdue{
 color:#d32f2f;
 font-weight:bold;
@@ -116,7 +117,6 @@ font-weight:bold;
 
 <div id="list"></div>
 
-<!-- モーダル -->
 <div class="modal" id="modal">
 <div class="modal-content">
 
@@ -134,35 +134,35 @@ font-weight:bold;
 
 <script>
 
-/* ===== データ ===== */
 let plants = JSON.parse(localStorage.getItem("tomalog") || "[]");
 let notified = JSON.parse(localStorage.getItem("tomalog_notified") || "{}");
 
-let modalState = { plantId:null, type:null };
+let modalState = {
+plantId:null,
+type:null
+};
 
-/* ===== 通知許可 ===== */
 if ("Notification" in window && Notification.permission !== "granted") {
-  Notification.requestPermission();
+Notification.requestPermission();
 }
 
-/* ===== 保存 ===== */
 function save(){
 localStorage.setItem("tomalog", JSON.stringify(plants));
 render();
 }
 
-/* ===== 日数 ===== */
 function days(date){
-return Math.floor((Date.now() - new Date(date)) / 86400000);
+return Math.floor(
+(Date.now() - new Date(date)) / 86400000
+);
 }
 
-/* ===== 追加 ===== */
 function addPlant(){
 
 const name=document.getElementById("name").value;
 const date=document.getElementById("date").value;
 
-if(!name||!date){
+if(!name || !date){
 alert("入力してください");
 return;
 }
@@ -171,17 +171,21 @@ plants.push({
 id:crypto.randomUUID(),
 name,
 sow:date,
-events:[{
+events:[
+{
 id:crypto.randomUUID(),
 date,
 text:"種まき"
-}]
+}
+]
 });
 
 save();
+
+document.getElementById("name").value="";
+document.getElementById("date").value="";
 }
 
-/* ===== モーダル ===== */
 function openModal(plantId,type){
 
 modalState={plantId,type};
@@ -198,8 +202,8 @@ memo:"📝 メモ"
 };
 
 document.getElementById("modalTitle").innerText=titleMap[type];
-
-document.getElementById("eventDate").value=new Date().toISOString().slice(0,10);
+document.getElementById("eventDate").value=
+new Date().toISOString().slice(0,10);
 
 const extra=document.getElementById("extraFields");
 extra.innerHTML="";
@@ -226,16 +230,17 @@ extra.innerHTML=`
 
 }
 
-/* ===== 閉じる ===== */
 function closeModal(){
 document.getElementById("modal").style.display="none";
 }
 
-/* ===== 保存 ===== */
 function saveEvent(){
 
-const plant = plants.find(p => p.id === modalState.plantId);
-const date = document.getElementById("eventDate").value;
+const plant =
+plants.find(p => p.id === modalState.plantId);
+
+const date =
+document.getElementById("eventDate").value;
 
 if(!date) return;
 
@@ -275,29 +280,37 @@ date,
 text
 });
 
+/* 保存時に時系列ソート */
+plant.events.sort(
+(a,b)=>new Date(a.date)-new Date(b.date)
+);
+
 save();
 closeModal();
 }
 
-/* ===== 削除 ===== */
 function deletePlant(id){
-if(!confirm("削除しますか？"))return;
-plants=plants.filter(p=>p.id!==id);
+if(!confirm("削除しますか？")) return;
+
+plants = plants.filter(p=>p.id!==id);
+
 save();
 }
 
 function deleteEvent(pid,eid){
-const plant=plants.find(p=>p.id===pid);
-plant.events=plant.events.filter(e=>e.id!==eid);
+
+const plant=
+plants.find(p=>p.id===pid);
+
+plant.events=
+plant.events.filter(e=>e.id!==eid);
+
 save();
 }
 
-/* ===== 通知（液肥7日） ===== */
 function checkNotifications(){
 
 if(Notification.permission !== "granted") return;
-
-const now = new Date();
 
 plants.forEach(plant=>{
 
@@ -305,16 +318,21 @@ plant.events.forEach(e=>{
 
 if(!e.text.startsWith("💧")) return;
 
-const diff = days(e.date);
+const diff=days(e.date);
 
-if(diff === 7 && !notified[e.id]){
+if(diff===7 && !notified[e.id]){
 
-new Notification("🌱 とまログ", {
+new Notification("🌱 とまログ",{
 body:`${plant.name}：液肥から7日経ちました`
 });
 
-notified[e.id] = true;
-localStorage.setItem("tomalog_notified", JSON.stringify(notified));
+notified[e.id]=true;
+
+localStorage.setItem(
+"tomalog_notified",
+JSON.stringify(notified)
+);
+
 }
 
 });
@@ -323,74 +341,38 @@ localStorage.setItem("tomalog_notified", JSON.stringify(notified));
 
 }
 
-/* ===== 表示 ===== */
 function render(){
 
 const list=document.getElementById("list");
 list.innerHTML="";
 
+/* 過去データも時系列へ */
 plants.forEach(plant=>{
-
-let germ = plant.events.find(e => e.text.includes("発芽"));
-
-let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
-let fert = fertEvents.length ? fertEvents[fertEvents.length - 1] : null;
-
-let germText = germ ? `発芽から ${days(germ.date)}日` : "発芽待ち";
-
-let fertDays = fert ? days(fert.date) : null;
-
-let fertText = fert
-? `<span class="${fertDays >= 7 ? 'overdue' : ''}">
-液肥から ${fertDays}日
-</span>`
-: "液肥なし";
-
-let events = plant.events.slice().reverse().map(e=>
-`<li class="event-item">
-<span>${e.date} ${e.text}</span>
-<button class="delete-btn" onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
-</li>`
-).join("");
-
-const div=document.createElement("div");
-div.className="card";
-
-div.innerHTML=`
-<b>🌱 ${plant.name}</b>
-
-<div class="small">種まきから ${days(plant.sow)}日</div>
-<div class="small">${germText}</div>
-<div class="small">${fertText}</div>
-
-<div class="quick-buttons">
-<button onclick="openModal('${plant.id}','germ')">🌱 発芽</button>
-<button onclick="openModal('${plant.id}','fert')">💧 液肥</button>
-<button onclick="openModal('${plant.id}','pest')">🐛 害虫</button>
-<button onclick="openModal('${plant.id}','rohaphi')">💊 ロハピ</button>
-<button onclick="openModal('${plant.id}','harvest')">🍅 収穫</button>
-<button onclick="openModal('${plant.id}','memo')">📝 メモ</button>
-</div>
-
-<button onclick="deletePlant('${plant.id}')">この野菜を削除</button>
-
-<ul>${events}</ul>
-`;
-
-list.appendChild(div);
-
+plant.events.sort(
+(a,b)=>new Date(a.date)-new Date(b.date)
+);
 });
 
-checkNotifications();
+plants.forEach(plant=>{
 
-}
+let germ=
+plant.events.find(
+e=>e.text.includes("発芽")
+);
 
-/* ===== 定期チェック ===== */
-setInterval(checkNotifications, 60 * 60 * 1000);
+let fertEvents=
+plant.events
+.filter(e=>e.text.startsWith("💧"))
+.sort(
+(a,b)=>new Date(b.date)-new Date(a.date)
+);
 
-render();
+let fert=fertEvents[0] || null;
 
-</script>
+let germText=
+germ
+? `発芽から ${days(germ.date)}日`
+: "発芽待ち";
 
-</body>
-</html>
+let fertDays=
+fert ? days(fert.date) : null;
