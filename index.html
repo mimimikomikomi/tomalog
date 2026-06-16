@@ -269,7 +269,12 @@ text="💊 ロハピ";
 break;
 
 case "harvest":
-text="🍅 収穫";
+
+const count =
+document.getElementById("harvestCount").value || 0;
+
+text=`🍅 収穫 ${count}個`;
+
 break;
 
 case "memo":
