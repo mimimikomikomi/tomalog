@@ -345,6 +345,16 @@ list.innerHTML="";
 
 plants.forEach(plant=>{
 
+let totalHarvest = plant.events
+.filter(e => e.text.startsWith("🍅 収穫"))
+.reduce((sum, e) => {
+
+  const match = e.text.match(/(\d+)個/);
+
+  return sum + (match ? Number(match[1]) : 0);
+
+}, 0);
+  
 let germ = plant.events.find(e => e.text.includes("発芽"));
 
 let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
