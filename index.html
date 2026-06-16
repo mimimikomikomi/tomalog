@@ -176,8 +176,7 @@ sow:date,
 events:[{
 id:crypto.randomUUID(),
 date,
-text:"種まき",
-createdAt:Date.now()
+text:"種まき"
 }]
 });
 
@@ -275,8 +274,7 @@ break;
 plant.events.push({
 id:crypto.randomUUID(),
 date,
-text,
-  createdAt:Date.now()
+text
 });
 
 save();
@@ -350,21 +348,7 @@ let fertText = fert
 </span>`
 : "液肥なし";
 
-let events = plant.events
-.slice()
-.sort((a,b)=>{
-
-const dateDiff =
-new Date(b.date) - new Date(a.date);
-
-if(dateDiff !== 0){
-return dateDiff;
-}
-
-return (b.createdAt || 0) - (a.createdAt || 0);
-
-})
-.map(e=>
+let events = plant.events.slice().reverse().map(e=>
 `<li class="event-item">
 <span>${e.date} ${e.text}</span>
 <button class="delete-btn" onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
