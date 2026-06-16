@@ -345,7 +345,10 @@ if(Notification.permission !== "granted") return;
 
 const now = new Date();
 
-plants.forEach(plant=>{
+plants
+.slice()
+.sort((a,b)=>new Date(a.sow)-new Date(b.sow))
+.forEach(plant=>{
 
 plant.events.forEach(e=>{
 
