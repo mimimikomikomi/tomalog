@@ -225,7 +225,14 @@ extra.innerHTML=`
 <input id="memoText" placeholder="メモ">
 `;
 }
-
+if(type==="harvest"){
+extra.innerHTML=`
+<input id="harvestCount"
+type="number"
+min="1"
+placeholder="収穫数（個）">
+`;
+}
 }
 
 /* ===== 閉じる ===== */
