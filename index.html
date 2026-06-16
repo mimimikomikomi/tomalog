@@ -348,7 +348,10 @@ let fertText = fert
 </span>`
 : "液肥なし";
 
-let events = plant.events.slice().reverse().map(e=>
+let events = plant.events
+.slice()
+.sort((a,b)=>new Date(a.date)-new Date(b.date))
+.map(e=>
 `<li class="event-item">
 <span>${e.date} ${e.text}</span>
 <button class="delete-btn" onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
