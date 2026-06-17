@@ -418,13 +418,17 @@ if(germ){
         / 86400000
       );
 
-    if(remain > 0){
-      forecastText =
-        `🍅 収穫目安まであと ${remain}日`;
-    }else{
-      forecastText =
-        `🍅 収穫目安を過ぎています`;
-    }
+   const y = forecastDate.getFullYear();
+const m = forecastDate.getMonth() + 1;
+const d = forecastDate.getDate();
+
+if(remain > 0){
+  forecastText =
+    `🍅 収穫予定日：${y}/${m}/${d}（あと${remain}日）`;
+}else{
+  forecastText =
+    `🍅 収穫予定日：${y}/${m}/${d}（目安を過ぎています）`;
+}
 
   }
 }
