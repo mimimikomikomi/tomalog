@@ -418,16 +418,15 @@ if(germ){
         / 86400000
       );
 
-   const y = forecastDate.getFullYear();
-const m = forecastDate.getMonth() + 1;
+   const m = forecastDate.getMonth() + 1;
 const d = forecastDate.getDate();
 
 if(remain > 0){
   forecastText =
-    `🍅 収穫予定日：${y}/${m}/${d}（あと${remain}日）`;
+    `📅 ${m}/${d} あと${remain}日`;
 }else{
   forecastText =
-    `🍅 収穫予定日：${y}/${m}/${d}（目安を過ぎています）`;
+    `📅 ${m}/${d} 収穫時期`;
 }
 
   }
