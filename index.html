@@ -493,27 +493,51 @@ const div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<b>🌱 ${plant.name}</b>
+<div
+onclick="togglePlant('${plant.id}')"
+style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+cursor:pointer;
+font-weight:bold;
+padding:8px 0;
+"
+>
+<span>
+${isOpen ? "▼" : "▶"} ${plant.name}
+</span>
 
-<div class="small">🍅 累計収穫 ${totalHarvest}個</div>
+<span style="
+font-size:14px;
+color:#666;
+white-space:nowrap;
+">
+🌱${days(plant.sow)}日
+🍅${totalHarvest}個
+</span>
+</div>
 
-<div class="small">種まきから ${days(plant.sow)}日</div>
+${isOpen ? `
 <div class="small">${germText}</div>
 <div class="small">${fertText}</div>
 <div class="small">${forecastText}</div>
 
 <div class="quick-buttons">
-<button onclick="openModal('${plant.id}','germ')">🌱 発芽</button>
-<button onclick="openModal('${plant.id}','fert')">💧 液肥</button>
-<button onclick="openModal('${plant.id}','pest')">🐛 害虫</button>
-<button onclick="openModal('${plant.id}','rohaphi')">💊 ロハピ</button>
-<button onclick="openModal('${plant.id}','harvest')">🍅 収穫</button>
-<button onclick="openModal('${plant.id}','memo')">📝 メモ</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','germ')">🌱 発芽</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','fert')">💧 液肥</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','pest')">🐛 害虫</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','rohaphi')">💊 ロハピ</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','harvest')">🍅 収穫</button>
+<button onclick="event.stopPropagation();openModal('${plant.id}','memo')">📝 メモ</button>
 </div>
 
-<button onclick="deletePlant('${plant.id}')">この野菜を削除</button>
+<button onclick="event.stopPropagation();deletePlant('${plant.id}')">
+この野菜を削除
+</button>
 
 <ul>${events}</ul>
+` : ""}
 `;
 
 list.appendChild(div);
