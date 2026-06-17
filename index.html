@@ -378,7 +378,13 @@ function render(){
 const list=document.getElementById("list");
 list.innerHTML="";
 
-plants.forEach(plant=>{
+plants
+
+.slice()
+
+.sort((a,b)=>new Date(a.sow)-new Date(b.sow))
+
+.forEach(plant=>{
 
 let totalHarvest = plant.events
 .filter(e => e.text.startsWith("🍅 収穫"))
