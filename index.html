@@ -449,12 +449,25 @@ let fertText = fert
 let events = plant.events
 .slice()
 .sort((a,b)=>new Date(a.date)-new Date(b.date))
-.map(e=>
-`<li class="event-item">
-<span>${e.date} ${e.text}</span>
-<button class="delete-btn" onclick="deleteEvent('${plant.id}','${e.id}')">×</button>
-</li>`
-).join("");
+.map(e=>{
+
+const d = new Date(e.date);
+
+const dateText =
+  `${d.getMonth()+1}/${d.getDate()}`;
+
+return `
+<li class="event-item">
+<span>${dateText} ${e.text}</span>
+<button class="delete-btn"
+onclick="deleteEvent('${plant.id}','${e.id}')">
+×
+</button>
+</li>
+`;
+
+})
+.join("");
 
 const div=document.createElement("div");
 div.className="card";
