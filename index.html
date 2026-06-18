@@ -451,6 +451,25 @@ if(germ){
         / 86400000
       );
 
+    let progress = 0;
+
+const harvestDays =
+  getHarvestDays(plant.name);
+
+if(harvestDays){
+
+  const baseDate =
+    germ ? germ.date : plant.sow;
+
+  progress = Math.min(
+    100,
+    Math.round(
+      days(baseDate) /
+      harvestDays * 100
+    )
+  );
+}
+
    const m = forecastDate.getMonth() + 1;
 const d = forecastDate.getDate();
 
@@ -531,6 +550,14 @@ white-space:nowrap;
 🌱${days(plant.sow)}日
 🍅${totalHarvest}個
 </span>
+</div>
+
+<div class="progress">
+<div
+class="progress-bar"
+style="width:${progress}%">
+</div>
+</div>
 </div>
 
 ${isOpen ? `
