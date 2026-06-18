@@ -419,6 +419,8 @@ plants
 
 .forEach(plant=>{
 
+let progress = 0;
+
 let totalHarvest = plant.events
 .filter(e => e.text.startsWith("🍅 収穫"))
 .reduce((sum, e) => {
@@ -429,29 +431,11 @@ let totalHarvest = plant.events
 
 }, 0);
   
-let germ = plant.events.find(e => e.text.includes("発芽"));
+let germ = plant.events.find(
+  e => e.text.includes("発芽")
+);
 
 let forecastText = "";
-
-if(germ){
-
-  const harvestDays = getHarvestDays(plant.name);
-
-  if(harvestDays){
-
-    const forecastDate = new Date(germ.date);
-
-    forecastDate.setDate(
-      forecastDate.getDate() + harvestDays
-    );
-
-    const remain =
-      Math.ceil(
-        (forecastDate - new Date())
-        / 86400000
-      );
-
-    let progress = 0;
 
 const harvestDays =
   getHarvestDays(plant.name);
@@ -468,21 +452,29 @@ if(harvestDays){
       harvestDays * 100
     )
   );
-}
 
-   const m = forecastDate.getMonth() + 1;
-const d = forecastDate.getDate();
+  const forecastDate =
+    new Date(baseDate);
 
-if(remain > 0){
+  forecastDate.setDate(
+    forecastDate.getDate() + harvestDays
+  );
+
+  const remain = Math.ceil(
+    (forecastDate - new Date())
+    / 86400000
+  );
+
+  const m = forecastDate.getMonth()+1;
+  const d = forecastDate.getDate();
+
   forecastText =
-    `🗓 ${m}/${d} あと${remain}日`;
-}else{
-  forecastText =
-    `🗓 ${m}/${d} 収穫時期`;
+    remain > 0
+      ? `🗓 ${m}/${d} あと${remain}日`
+      : `🗓 ${m}/${d} 収穫時期`;
 }
 
-  }
-}
+  
 
   
 let fertEvents = plant.events.filter(e => e.text.startsWith("💧"));
@@ -557,7 +549,7 @@ white-space:nowrap;
 class="progress-bar"
 style="width:${progress}%">
 </div>
-</div>
+
 </div>
 
 ${isOpen ? `
