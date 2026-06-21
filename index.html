@@ -7,37 +7,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🍅 とまログ</title>
 
-  <div class="card" id="weatherCard">
-天気取得中...
-</div>
-
-  .weather-title{
-font-size:18px;
-font-weight:bold;
-margin-bottom:6px;
-}
-
-.weather-advice{
-margin-top:8px;
-line-height:1.6;
-}
-
-.sunny{
-background:#fff8d6;
-}
-
-.cloudy{
-background:#f5f5f5;
-}
-
-.rainy{
-background:#e3f2fd;
-}
-
-.storm{
-background:#ede7f6;
-}
-
 <style>
 body{
 font-family:-apple-system,sans-serif;
@@ -149,17 +118,12 @@ height:100%;
 background:#66bb6a;
 }
 
-  
 </style>
 </head>
 
 <body>
 
 <h1>🍅 とまログ</h1>
-
-<div class="card" id="weatherCard">
-天気取得中...
-</div>
 
 <div class="card">
 <input id="name" placeholder="野菜名">
@@ -549,7 +513,6 @@ onclick="deleteEvent('${plant.id}','${e.id}')">
 })
 .join("");
 
-
   const isOpen = openPlants[plant.id] ?? false;
 const div=document.createElement("div");
 div.className="card";
@@ -621,107 +584,6 @@ checkNotifications();
 /* ===== 定期チェック ===== */
 setInterval(checkNotifications, 60 * 60 * 1000);
 
-async function loadWeather(){
-
-try{
-
-const lat = 34.6937;
-const lon = 135.5023;
-
-const res = await fetch(
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
-);
-
-const data = await res.json();
-
-const temp =
-Math.round(data.current.temperature_2m);
-
-const code =
-data.current.weather_code;
-
-let emoji = "☀️";
-let weather = "晴れ";
-let advice = "";
-let cardClass = "sunny";
-
-if(code === 0){
-
-emoji = "☀️";
-weather = "晴れ";
-
-advice = `
-💧 水切れ注意<br>
-🍅 実割れに注意
-`;
-
-cardClass = "sunny";
-
-}else if([1,2,3].includes(code)){
-
-emoji = "⛅";
-weather = "くもり";
-
-advice = `
-🌱 生育日和
-`;
-
-cardClass = "cloudy";
-
-}else if(
-[51,53,55,61,63,65,80,81,82].includes(code)
-){
-
-emoji = "🌧️";
-weather = "雨";
-
-advice = `
-💧 水やり不要かも<br>
-🐌 ナメクジ注意
-`;
-
-cardClass = "rainy";
-
-}else if(
-[95,96,99].includes(code)
-){
-
-emoji = "⛈️";
-weather = "雷雨";
-
-advice = `
-🌱 苗の転倒に注意
-`;
-
-cardClass = "storm";
-}
-
-const card =
-document.getElementById("weatherCard");
-
-card.className = `card ${cardClass}`;
-
-card.innerHTML = `
-<div class="weather-title">
-${emoji} ${weather} ${temp}℃
-</div>
-
-<div class="weather-advice">
-${advice}
-</div>
-`;
-
-}catch(e){
-
-document.getElementById("weatherCard").innerHTML =
-"天気を取得できませんでした";
-
-}
-
-}
-
-loadWeather();
-  
 render();
 
 </script>
