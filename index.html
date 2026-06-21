@@ -125,6 +125,12 @@ background:#66bb6a;
 
 <h1>🍅 とまログ</h1>
 
+
+
+<div class="card" id="weatherCard">
+  ☁️ 天気取得中...
+</div>
+  
 <div class="card">
 <input id="name" placeholder="野菜名">
 <input id="date" type="date">
@@ -584,6 +590,82 @@ checkNotifications();
 /* ===== 定期チェック ===== */
 setInterval(checkNotifications, 60 * 60 * 1000);
 
+/* ===== 長野市の天気 ===== */
+async function loadWeather(){
+
+  try{
+
+    // 長野市
+    const lat = 36.6486;
+    const lon = 138.1942;
+
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FTokyo`
+    );
+
+    const data = await res.json();
+
+    const temp =
+  Math.round(data.current.temperature_2m);
+
+const code =
+  data.current.weather_code;
+
+/* ← ここに追加 */
+let advice = "";
+
+if([51,53,55,61,63,65,80,81,82].includes(code)){
+  advice = "🐌 雨の日はナメクジ注意";
+}
+else if(code === 0){
+  advice = "☀️ 水切れに注意";
+}
+else if(temp >= 30){
+  advice = "🥵 高温注意・朝夕に水やり";
+}
+else if([95,96,99].includes(code)){
+  advice = "⛈️ 強風で支柱確認";
+}
+
+    let weather = "☁️";
+
+    if(code === 0) weather = "☀️";
+    else if([1,2,3].includes(code)) weather = "🌤️";
+    else if([45,48].includes(code)) weather = "🌫️";
+    else if(
+      [51,53,55,61,63,65,80,81,82]
+      .includes(code)
+    ) weather = "🌧️";
+    else if(
+      [71,73,75,77,85,86]
+      .includes(code)
+    ) weather = "❄️";
+    else if(
+      [95,96,99].includes(code)
+    ) weather = "⛈️";
+
+    document.getElementById("weatherCard").innerHTML =
+`
+<div style="font-size:20px">
+${weather} 長野市 ${temp}℃
+</div>
+
+<div class="small">
+${advice}
+</div>
+`;
+
+  }catch(e){
+
+    document.getElementById(
+      "weatherCard"
+    ).innerHTML =
+      "⚠️ 天気取得失敗";
+
+  }
+}
+  
+loadWeather();
 render();
 
 </script>
