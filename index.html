@@ -563,7 +563,11 @@ ${isOpen ? `
 <div class="small">${forecastText}</div>
 
 <div class="quick-buttons">
-<button onclick="event.stopPropagation();openModal('${plant.id}','germ')">🌱 発芽</button>
+${!germ ? `
+<button onclick="event.stopPropagation();openModal('${plant.id}','germ')">
+🌱 発芽
+</button>
+` : ""}
 <button onclick="event.stopPropagation();openModal('${plant.id}','fert')">💧 液肥</button>
 <button onclick="event.stopPropagation();openModal('${plant.id}','pest')">🐛 害虫</button>
 <button onclick="event.stopPropagation();openModal('${plant.id}','rohaphi')">💊 ロハピ</button>
