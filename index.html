@@ -541,10 +541,21 @@ ${isOpen ? "▼" : "▶"} ${plant.name}
 
 <span style="
 font-size:14px;
-color:#666;
 white-space:nowrap;
 ">
 🌱${days(plant.sow)}日
+
+<span style="
+color:${
+  fert
+    ? (fertDays >= 7 ? '#d32f2f' : '#666')
+    : '#999'
+};
+font-weight:${fert && fertDays >= 7 ? 'bold' : 'normal'};
+">
+💧${fert ? fertDays : "-"}日
+</span>
+
 🍅${totalHarvest}個
 </span>
 </div>
