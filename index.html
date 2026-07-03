@@ -240,10 +240,12 @@ alert("入力してください");
 return;
 }
 
-plants.push({
+  plants.push({
 id:crypto.randomUUID(),
 name,
 sow:date,
+finished:false,
+finishedDate:null,
 events:[{
 id:crypto.randomUUID(),
 date,
@@ -252,6 +254,10 @@ text:"種まき"
 });
 
 save();
+
+document.getElementById("name").value = "";
+document.getElementById("date").value = "";
+
 }
 
 /* ===== モーダル ===== */
@@ -371,6 +377,19 @@ plants=plants.filter(p=>p.id!==id);
 save();
 }
 
+/* ===== 栽培終了 ===== */
+function finishPlant(id){
+
+  if(!confirm("栽培を終了しますか？\n一覧からは消えますが、栽培アルバムで見返せます。")) return;
+
+  const plant = plants.find(p => p.id === id);
+
+  plant.finished = true;
+  plant.finishedDate = new Date().toISOString().slice(0,10);
+
+  save();
+}
+
 function deleteEvent(pid,eid){
 const plant=plants.find(p=>p.id===pid);
 plant.events=plant.events.filter(e=>e.id!==eid);
@@ -380,34 +399,36 @@ save();
 /* ===== 通知（液肥7日） ===== */
 function checkNotifications(){
 
-if(Notification.permission !== "granted") return;
+  if(Notification.permission !== "granted") return;
 
-const now = new Date();
+  plants
+  .slice()
+  .sort((a,b)=>new Date(a.sow)-new Date(b.sow))
+  .forEach(plant=>{
 
-plants
-.slice()
-.sort((a,b)=>new Date(a.sow)-new Date(b.sow))
-.forEach(plant=>{
+    plant.events.forEach(e=>{
 
-plant.events.forEach(e=>{
+      if(!e.text.startsWith("💧")) return;
 
-if(!e.text.startsWith("💧")) return;
+      const diff = days(e.date);
 
-const diff = days(e.date);
+      if(diff === 7 && !notified[e.id]){
 
-if(diff === 7 && !notified[e.id]){
+        new Notification("🌱 とまログ", {
+          body:`${plant.name}：液肥から7日経ちました`
+        });
 
-new Notification("🌱 とまログ", {
-body:`${plant.name}：液肥から7日経ちました`
-});
+        notified[e.id] = true;
+        localStorage.setItem(
+          "tomalog_notified",
+          JSON.stringify(notified)
+        );
 
-notified[e.id] = true;
-localStorage.setItem("tomalog_notified", JSON.stringify(notified));
-}
+      }
 
-});
+    });
 
-});
+  });
 
 }
 
@@ -415,15 +436,18 @@ localStorage.setItem("tomalog_notified", JSON.stringify(notified));
 function render(){
 
 const list=document.getElementById("list");
-list.innerHTML="";
 
-plants
+list.innerHTML = "<h2>🌱 栽培中</h2>";
 
-.slice()
+const growingPlants = plants
+  .filter(p => !p.finished)
+  .sort((a,b)=>new Date(a.sow)-new Date(b.sow));
 
-.sort((a,b)=>new Date(a.sow)-new Date(b.sow))
+const archivePlants = plants
+  .filter(p => p.finished)
+  .sort((a,b)=>new Date(b.finishedDate)-new Date(a.finishedDate));
 
-.forEach(plant=>{
+growingPlants.forEach(plant=>{
 
 let progress = 0;
 
@@ -586,6 +610,12 @@ ${!germ ? `
 <button onclick="event.stopPropagation();openModal('${plant.id}','memo')">📝 メモ</button>
 </div>
 
+${!plant.finished ? `
+<button onclick="event.stopPropagation();finishPlant('${plant.id}')">
+🏁 栽培終了
+</button>
+` : ""}
+
 <button onclick="event.stopPropagation();deletePlant('${plant.id}')">
 この野菜を削除
 </button>
@@ -595,6 +625,35 @@ ${!germ ? `
 `;
 
 list.appendChild(div);
+
+});
+
+  list.innerHTML += "<h2>📦 栽培アルバム</h2>";
+
+archivePlants.forEach(plant => {
+
+  const totalDays = Math.floor(
+    (new Date(plant.finishedDate) - new Date(plant.sow))
+    / 86400000
+  );
+
+  const totalHarvest = plant.events
+    .filter(e => e.text.startsWith("🍅 収穫"))
+    .reduce((sum, e) => {
+      const match = e.text.match(/(\d+)個/);
+      return sum + (match ? Number(match[1]) : 0);
+    }, 0);
+
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML = `
+    <b>📦 ${plant.name}</b><br>
+    🌱 栽培日数：${totalDays}日<br>
+    🍅 収穫数：${totalHarvest}個
+  `;
+
+  list.appendChild(div);
 
 });
 
