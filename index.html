@@ -229,6 +229,20 @@ function getHarvestDays(name){
 
 }
 
+  function getFlowerHarvestDays(name){
+
+  if(name.includes("トマト")) return 45;
+
+  if(name.includes("きゅうり")) return 8;
+
+  if(name.includes("オクラ")) return 5;
+
+  if(name.includes("枝豆")) return 35;
+
+  return null;
+
+}
+
 /* ===== 追加 ===== */
 function addPlant(){
 
@@ -470,29 +484,45 @@ let germ = plant.events.find(
   e => e.text.includes("発芽")
 );
 
+  let flower = plant.events.find(
+  e => e.text.includes("開花")
+);
+
 let forecastText = "";
 
 const harvestDays =
   getHarvestDays(plant.name);
 
+  const flowerHarvestDays =
+  getFlowerHarvestDays(plant.name);
+
 if(harvestDays){
 
   const baseDate =
-    germ ? germ.date : plant.sow;
+  flower
+    ? flower.date
+    : germ
+      ? germ.date
+      : plant.sow;
 
-  progress = Math.min(
-    100,
-    Math.round(
-      days(baseDate) /
-      harvestDays * 100
-    )
-  );
+  const totalDays =
+  flower && flowerHarvestDays
+    ? flowerHarvestDays
+    : harvestDays;
+
+progress = Math.min(
+  100,
+  Math.round(
+    days(baseDate) /
+    totalDays * 100
+  )
+);
 
   const forecastDate =
     new Date(baseDate);
 
   forecastDate.setDate(
-    forecastDate.getDate() + harvestDays
+    forecastDate.getDate() + totalDays
   );
 
   const remain = Math.ceil(
