@@ -516,8 +516,14 @@ progress = Math.min(
   )
 );
 
-  const forecastDate =
-    new Date(baseDate);
+let progressColor = "#66bb6a";
+
+if (flower) {
+  progressColor = "#ff9800";
+}
+
+const forecastDate =
+  new Date(baseDate);
 
   forecastDate.setDate(
     forecastDate.getDate() + totalDays
