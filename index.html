@@ -269,6 +269,7 @@ document.getElementById("modal").style.display="flex";
 
 const titleMap={
 germ:"🌱 発芽",
+flower:"🌸 開花",
 fert:"💧 液肥",
 pest:"🐛 害虫",
 rohaphi:"💊 ロハピ",
@@ -331,6 +332,10 @@ switch(modalState.type){
 
 case "germ":
 text="🌱 発芽";
+break;
+
+    case "flower":
+text="🌸 開花";
 break;
 
 case "fert":
@@ -601,6 +606,11 @@ ${isOpen ? `
 ${!germ ? `
 <button onclick="event.stopPropagation();openModal('${plant.id}','germ')">
 🌱 発芽
+</button>
+` : ""}
+${germ ? `
+<button onclick="event.stopPropagation();openModal('${plant.id}','flower')">
+🌸 開花
 </button>
 ` : ""}
 <button onclick="event.stopPropagation();openModal('${plant.id}','fert')">💧 液肥</button>
