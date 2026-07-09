@@ -496,19 +496,17 @@ const harvestDays =
   const flowerHarvestDays =
   getFlowerHarvestDays(plant.name);
 
-if(harvestDays){
+const totalDays = flower
+  ? getFlowerHarvestDays(plant.name)
+  : getHarvestDays(plant.name);
 
-  const baseDate =
-  flower
+if(totalDays){
+
+  const baseDate = flower
     ? flower.date
     : germ
       ? germ.date
       : plant.sow;
-
-  const totalDays =
-  flower && flowerHarvestDays
-    ? flowerHarvestDays
-    : harvestDays;
 
 progress = Math.min(
   100,
