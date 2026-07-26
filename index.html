@@ -225,6 +225,10 @@ function getHarvestDays(name){
 
     return 30;
 
+  if(name.includes("モロヘイヤ"))
+
+  return 60;
+
   return null;
 
 }
@@ -863,6 +867,17 @@ if(plantNames.includes("二十日大根")){
     "🔴 根元が膨らみ始めたかな？",
     "🔴 収穫サイズを確認しよう",
     "🔴 取り遅れに注意"
+  );
+}
+
+    if(plantNames.includes("モロヘイヤ")){
+  vegetableTips.push(
+    "🌿 モロヘイヤの先端をチェック",
+    "🌿 柔らかい葉を収穫しよう",
+    "🌿 草丈が30cmくらいになっていないかな？",
+    "🌿 摘芯すると脇芽が増えるかも",
+    "🌿 葉の裏に害虫がいないかチェック",
+    "🌿 収穫するほどどんどん育つよ"
   );
 }
 
