@@ -303,9 +303,49 @@ const extra=document.getElementById("extraFields");
 extra.innerHTML="";
 
 if(type==="fert"){
+
+const fertTypes = [
+  ...new Set(
+    plants
+      .flatMap(p => p.events)
+      .filter(e => e.text.startsWith("💧"))
+      .map(e => {
+        const match = e.text.match(/^💧 (.+?)（/);
+        return match ? match[1] : "";
+      })
+      .filter(Boolean)
+  )
+];
+
+const fertRatios = [
+  ...new Set(
+    plants
+      .flatMap(p => p.events)
+      .filter(e => e.text.startsWith("💧"))
+      .map(e => {
+        const match = e.text.match(/（(.+?)）/);
+        return match ? match[1] : "";
+      })
+      .filter(Boolean)
+  )
+];
+
 extra.innerHTML=`
-<input id="fertType" placeholder="液肥の種類">
-<input id="fertRatio" placeholder="希釈（例：1000倍）">
+<input id="fertType"
+placeholder="液肥の種類"
+list="fertTypeList">
+
+<datalist id="fertTypeList">
+${fertTypes.map(x => `<option value="${x}">`).join("")}
+</datalist>
+
+<input id="fertRatio"
+placeholder="希釈（例：1000倍）"
+list="fertRatioList">
+
+<datalist id="fertRatioList">
+${fertRatios.map(x => `<option value="${x}">`).join("")}
+</datalist>
 `;
 }
 
