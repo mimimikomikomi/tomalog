@@ -125,6 +125,24 @@ height:100%;
 background:#66bb6a;
 }
 
+  .add-card{
+display:none;
+}
+
+.plus-btn{
+position:fixed;
+right:20px;
+bottom:20px;
+width:60px;
+height:60px;
+border-radius:50%;
+font-size:32px;
+background:#6aa84f;
+color:white;
+box-shadow:0 4px 10px rgba(0,0,0,.25);
+z-index:10;
+}
+  
 </style>
 </head>
 
@@ -138,7 +156,7 @@ background:#66bb6a;
   ☁️ 天気取得中...
 </div>
   
-<div class="card">
+<div class="card add-card" id="addCard">
 <input id="name" placeholder="野菜名">
 <input id="date" type="date">
 <button onclick="addPlant()">登録</button>
@@ -202,8 +220,7 @@ function togglePlant(id){
   saveOpenState();
   render();
 }
-
-// ↓ここから追加
+  
 function saveHistoryState(){
   localStorage.setItem(
     "tomalog_history",
@@ -217,11 +234,7 @@ function toggleHistory(id){
   render();
 }
 
-function togglePlant(id){
-  openPlants[id] = !openPlants[id];
-  saveOpenState();
-  render();
-}
+
 
 /* ===== 日数 ===== */
 function days(date){
@@ -278,6 +291,18 @@ function getHarvestDays(name){
 
 }
 
+  function toggleAdd(){
+
+const box = document.getElementById("addCard");
+
+if(box.style.display === "block"){
+  box.style.display = "none";
+}else{
+  box.style.display = "block";
+}
+
+}
+
 /* ===== 追加 ===== */
 function addPlant(){
 
@@ -306,6 +331,8 @@ save();
 
 document.getElementById("name").value = "";
 document.getElementById("date").value = "";
+
+document.getElementById("addCard").style.display="none";
 
 }
 
@@ -1024,6 +1051,10 @@ loadWeather();
 render();
 
 </script>
+
+<button class="plus-btn" onclick="toggleAdd()">
+＋
+</button>
 
 </body>
 </html>
