@@ -166,6 +166,10 @@ let modalState = { plantId:null, type:null };
 let openPlants = JSON.parse(
   localStorage.getItem("tomalog_open") || "{}"
 );
+
+let historyOpen = JSON.parse(
+  localStorage.getItem("tomalog_history") || "{}"
+);
   
 /* ===== 通知許可 ===== */
 if ("Notification" in window && Notification.permission !== "granted") {
@@ -184,6 +188,26 @@ function saveOpenState(){
     "tomalog_open",
     JSON.stringify(openPlants)
   );
+}
+
+function togglePlant(id){
+  openPlants[id] = !openPlants[id];
+  saveOpenState();
+  render();
+}
+
+// ↓ここから追加
+function saveHistoryState(){
+  localStorage.setItem(
+    "tomalog_history",
+    JSON.stringify(historyOpen)
+  );
+}
+
+function toggleHistory(id){
+  historyOpen[id] = !historyOpen[id];
+  saveHistoryState();
+  render();
 }
 
 function togglePlant(id){
@@ -603,17 +627,24 @@ let fertText = fert
 </span>`
 : "液肥なし";
 
-let events = plant.events
-.slice()
-.sort((a,b)=>new Date(a.date)-new Date(b.date))
-.map(e=>{
+const sortedEvents = plant.events
+  .slice()
+  .sort((a,b)=>new Date(b.date)-new Date(a.date));
 
-const d = new Date(e.date);
+const showAll = historyOpen[plant.id] ?? false;
 
-const dateText =
-  `${d.getMonth()+1}/${d.getDate()}`;
+const displayEvents = showAll
+  ? sortedEvents
+  : sortedEvents.slice(0,5);
 
-return `
+let events = displayEvents.map(e=>{
+
+  const d = new Date(e.date);
+
+  const dateText =
+    `${d.getMonth()+1}/${d.getDate()}`;
+
+  return `
 <li class="event-item">
 <span>${dateText} ${e.text}</span>
 <button class="delete-btn"
@@ -623,8 +654,7 @@ onclick="deleteEvent('${plant.id}','${e.id}')">
 </li>
 `;
 
-})
-.join("");
+}).join("");
 
   const isOpen = openPlants[plant.id] ?? false;
 const div=document.createElement("div");
@@ -709,6 +739,18 @@ ${!plant.finished ? `
 </button>
 
 <ul>${events}</ul>
+${
+sortedEvents.length > 5
+? `
+<button
+onclick="event.stopPropagation();toggleHistory('${plant.id}')">
+${showAll
+? '▲ 閉じる'
+: `▼ すべての記録（${sortedEvents.length}件）`}
+</button>
+`
+: ""
+}
 ` : ""}
 `;
 
